@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Virtual - Chat AG-UI</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6fb; margin: 0; padding: 0; }
+        #chat-container { max-width: 420px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 0; display: flex; flex-direction: column; height: 90vh; }
+        #chat-header { background: #2d6cdf; color: #fff; padding: 18px 20px; border-radius: 12px 12px 0 0; font-size: 1.2em; font-weight: 600; letter-spacing: 1px; }
+        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 1em; line-height: 1.5; }
+        .msg.user { align-self: flex-end; background: #e3edff; color: #2d6cdf; border-bottom-right-radius: 4px; }
+        .msg.assistant { align-self: flex-start; background: #f0f1f7; color: #222; border-bottom-left-radius: 4px; }
+        #input-bar { display: flex; padding: 16px; border-top: 1px solid #e5e7ef; background: #fafbff; border-radius: 0 0 12px 12px; }
+        #user-input { flex: 1; padding: 10px 14px; border: 1px solid #c7d2fe; border-radius: 8px; font-size: 1em; outline: none; }
+        #send-btn { background: #2d6cdf; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; margin-left: 8px; font-size: 1em; cursor: pointer; transition: background 0.2s; }
+        #send-btn:disabled { background: #b6c6e6; cursor: not-allowed; }
+        #status { font-size: 0.95em; color: #888; margin: 0 0 8px 0; min-height: 18px; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-header">Tutor Virtual – MiSuperProfe</div>
+        <div id="messages"></div>
+        <div id="input-bar">
+            <input type="text" id="user-input" placeholder="Escribe tu pregunta..." autocomplete="off" />
+            <button id="send-btn">Enviar</button>
+        </div>
+        <div id="status"></div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const messagesDiv = document.getElementById('messages');
+        const input = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const statusDiv = document.getElementById('status');
+        let session_id = null;
+        let historial = [];
+
+        function appendMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.className = 'msg ' + sender;
+            msg.textContent = text;
+            messagesDiv.appendChild(msg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function setStatus(text) {
+            statusDiv.textContent = text;
+        }
+
+        function disableInput(disabled) {
+            input.disabled = disabled;
+            sendBtn.disabled = disabled;
+        }
+
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+            appendMessage(text, 'user');
+            historial.push({ role: 'user', content: text });
+            input.value = '';
+            disableInput(true);
+            setStatus('El tutor está escribiendo...');
+
+            const payload = {
+                mensaje: text,
+                session_id: session_id,
+                historial: historial.slice(-10), // Limitar historial enviado
+            };
+            if (token) payload.token = token;
+
+            const url = '/agent/chat';
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+            });
+            if (!response.body) {
+                setStatus('Error: no se pudo conectar con el tutor.');
+                disableInput(false);
+                return;
+            }
+            let assistantMsg = '';
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                if (value) {
+                    const chunk = decoder.decode(value, { stream: true });
+                    chunk.split('\n\n').forEach(eventBlock => {
+                        if (!eventBlock.trim()) return;
+                        const lines = eventBlock.split('\n');
+                        let eventType = null;
+                        let data = null;
+                        lines.forEach(line => {
+                            if (line.startsWith('event:')) eventType = line.replace('event:', '').trim();
+                            if (line.startsWith('data:')) data = JSON.parse(line.replace('data:', '').trim());
+                        });
+                        if (eventType === 'TEXT_MESSAGE_CONTENT' && data) {
+                            assistantMsg += data.text;
+                            if (messagesDiv.lastChild && messagesDiv.lastChild.classList.contains('assistant')) {
+                                messagesDiv.lastChild.textContent = assistantMsg;
+                            } else {
+                                appendMessage('', 'assistant');
+                                messagesDiv.lastChild.textContent = assistantMsg;
+                            }
+                            if (data.session_id) session_id = data.session_id;
+                        }
+                        if (eventType === 'DONE' && data) {
+                            if (data.session_id) session_id = data.session_id;
+                            if (assistantMsg) historial.push({ role: 'assistant', content: assistantMsg });
+                            setStatus('');
+                            disableInput(false);
+                            assistantMsg = '';
+                        }
+                    });
+                }
+            }
+        }
+
+        sendBtn.onclick = sendMessage;
+        input.onkeydown = function(e) { if (e.key === 'Enter') sendMessage(); };
+    </script>
+</body>
+</html> 

@@ -1,0 +1,168 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "MiSuperProfe API",
+    "description": "API para el tutor inteligente de MiSuperProfe",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://app.misuperprofe.com/api/v1"
+    }
+  ],
+  "paths": {
+    "/ask": {
+      "post": {
+        "summary": "Buscar respuesta a una pregunta",
+        "description": "Busca la respuesta a una pregunta usando búsqueda semántica en el contenido disponible",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pregunta": {
+                    "type": "string",
+                    "description": "La pregunta del estudiante"
+                  }
+                },
+                "required": ["pregunta"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "respuesta": {
+                      "type": "string",
+                      "description": "La respuesta a la pregunta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Pregunta requerida"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      }
+    },
+    "/get_question": {
+      "post": {
+        "summary": "Generar pregunta de práctica",
+        "description": "Genera una pregunta de práctica para un curso y capítulo específico",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "course": {
+                    "type": "string",
+                    "description": "Nombre del curso"
+                  },
+                  "chapter_id": {
+                    "type": "string",
+                    "description": "ID del capítulo"
+                  }
+                },
+                "required": ["course", "chapter_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pregunta generada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pregunta": {
+                      "type": "string",
+                      "description": "La pregunta generada"
+                    },
+                    "opciones": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Opciones de respuesta"
+                    },
+                    "respuesta_correcta": {
+                      "type": "string",
+                      "description": "La respuesta correcta"
+                    },
+                    "explicacion": {
+                      "type": "string",
+                      "description": "Explicación de la respuesta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Curso o capítulo no encontrado"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      }
+    },
+    "/agent/health": {
+      "get": {
+        "summary": "Verificar estado del servicio",
+        "description": "Endpoint de health check para verificar que el servicio esté funcionando",
+        "responses": {
+          "200": {
+            "description": "Servicio funcionando",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "service": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+} 

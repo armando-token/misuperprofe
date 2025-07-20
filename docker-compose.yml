@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: misuperpostgre
+    environment:
+      POSTGRES_USER: mysuper_user
+      POSTGRES_PASSWORD: Tecsup2009101459
+      POSTGRES_DB: mysuper_bd
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mysuper_user -d mysuper_bd"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: misuperredis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  misuperapi:
+    build: .
+    container_name: misuperapi
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_USER=mysuper_user
+      - POSTGRES_PASSWORD=Tecsup2009101459
+      - POSTGRES_DB=mysuper_bd
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE_URL=postgresql+psycopg2://mysuper_user:Tecsup2009101459@db:5432/mysuper_bd
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=AVerySecureKeyPleaseChangeInProduction
+      - JWT_ALGORITHM=HS256
+      - ENVIRONMENT=development
+      - APP_NAME=MySuperProfeAPI
+      - API_V1_STR=/api/v1
+      - API_KEY=Tecsup1983101459
+      - GOOGLE_API_KEY=AIzaSyDittK9k8Hl8xb96X9sMnaB2zundXA1QXQ
+      - LANGSMITH_API_KEY=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
+      - OPENAI_API_KEY=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
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "cd /app/src && alembic -c /app/alembic.ini upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./src:/app/src
+      - ./content:/app/content
+      - ./scripts:/app/scripts
+
+volumes:
+  postgres_data:
+  redis_data: 

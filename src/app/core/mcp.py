@@ -119,14 +119,15 @@ async def mcp_tool_execute(tool_name: str, body: dict):
         return JSONResponse(content={"error": f"Tool '{tool_name}' not found."}, status_code=404)
     try:
         # Detectar si la tool requiere un argumento db: AsyncSession
-        sig = inspect.signature(getattr(tool, 'fn', tool))
+        sig = inspect.signature(tool)
         params = sig.parameters
         run_kwargs = dict(body)
         if 'db' in params:
             # Resolver la sesión manualmente
             db = await get_session().__anext__()
             run_kwargs['db'] = db
-        result = await tool.run(run_kwargs)
+        # Ejecutar la función directamente
+        result = await tool(**run_kwargs)
         # Asegurar que el resultado es serializable
         def to_serializable(obj):
             if isinstance(obj, list):

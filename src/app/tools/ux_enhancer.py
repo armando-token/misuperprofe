@@ -290,14 +290,15 @@ async def get_conversation_context(
         # Obtener historial reciente del usuario
         query = text("""
         SELECT 
-            c.nombre as curso,
+            cur.nombre as curso,
             r.fecha,
             r.es_correcta,
             COUNT(*) as intentos_curso
         FROM resultado r
         JOIN capitulo c ON r.capitulo_id = c.id
+        JOIN curso cur ON c.curso_id = cur.id
         WHERE r.estudiante_id = :user_id
-        GROUP BY c.nombre, r.fecha, r.es_correcta
+        GROUP BY cur.nombre, r.fecha, r.es_correcta
         ORDER BY r.fecha DESC
         LIMIT 10
         """)

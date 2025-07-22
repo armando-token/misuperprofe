@@ -12,11 +12,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups  # Para backups automáticos
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mysuper_user -d mysuper_bd"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped  # Reinicio automático
 
   redis:
     image: redis:7-alpine
@@ -25,11 +27,14 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+      - ./redis_backups:/backups  # Para backups de Redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped  # Reinicio automático
+    command: redis-server --appendonly yes  # Habilitar persistencia AOF
 
   misuperapi:
     build: .
@@ -63,7 +68,11 @@ services:
       - ./src:/app/src
       - ./content:/app/content
       - ./scripts:/app/scripts
+      - ./logs:/app/logs  # Para logs persistentes
+    restart: unless-stopped  # Reinicio automático
 
 volumes:
   postgres_data:
-  redis_data: 
+    driver: local
+  redis_data:
+    driver: local 

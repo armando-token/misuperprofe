@@ -480,6 +480,52 @@
           "404": {"description": "Usuario no encontrado"}
         }
       }
+    },
+    "/tool/recomendar_plan_estudio": {
+      "post": {
+        "summary": "Recomendar plan de estudio personalizado",
+        "operationId": "recomendarPlanEstudio",
+        "tags": ["herramientas_mcp"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {"type": "string", "description": "ID del usuario (email)"}
+                },
+                "required": ["user_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plan de estudio personalizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "prioridades": {"type": "array", "items": {"type": "string"}},
+                        "recomendaciones": {"type": "object"},
+                        "usuario": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"},
+          "404": {"description": "Usuario no encontrado"}
+        }
+      }
     }
   },
   "components": {

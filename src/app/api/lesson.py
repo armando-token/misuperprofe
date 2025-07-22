@@ -4,7 +4,7 @@ from ..models.adaptive import LessonSession, UserProgress, Streak, LessonError, 
 from ..models.curso import Curso
 from ..models.capitulo import Capitulo
 from ..db.session import get_session as get_db
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime, timedelta, timezone
 import uuid
 from ..tools.redis_utils import (
@@ -257,7 +257,8 @@ class AnswerRequest(BaseModel):
     latency_ms: Optional[int] = None
     student_answer: Optional[str] = None
 
-    @validator('student_answer', pre=True, always=True)
+    @field_validator('student_answer', mode='before')
+    @classmethod
     def normalize_student_answer(cls, v):
         if v is None:
             return None

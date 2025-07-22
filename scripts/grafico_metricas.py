@@ -1,9 +1,10 @@
 import requests
 import sys
+import os
 import matplotlib.pyplot as plt
 
 API_URL = "http://localhost:8000/user_stats"
-API_KEY = "Tecsup1983101459"
+API_KEY = os.getenv("API_KEY", "Tecsup1983101459")
 USER_ID = sys.argv[1] if len(sys.argv) > 1 else "demo"
 
 headers = {"Authorization": f"Bearer {API_KEY}"}

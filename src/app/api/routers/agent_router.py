@@ -28,8 +28,35 @@ async def ask_question(payload: dict):
         if not pregunta:
             raise HTTPException(status_code=400, detail="La pregunta es requerida")
         
-        # Por ahora, retornamos una respuesta temporal mientras se inicializa la búsqueda semántica
-        return {"respuesta": f"Tu pregunta sobre '{pregunta}' está siendo procesada. La búsqueda semántica se está inicializando. Por favor, intenta nuevamente en unos minutos."}
+        # Importar y usar la búsqueda semántica
+        from app.tools.semantic_search_optimized import get_semantic_search
+        
+        try:
+            semantic_search = await get_semantic_search()
+            results = await semantic_search.search(pregunta, k=3)
+            
+            if results and len(results) > 0:
+                # Tomar el mejor resultado (primera tupla: (chapter, score))
+                best_result = results[0]
+                chapter, score = best_result
+                
+                # Obtener el contenido del capítulo
+                contenido = chapter.contenido_html or chapter.contenido_md or ""
+                
+                # Limpiar HTML si existe
+                import re
+                contenido = re.sub(r'<[^>]+>', '', contenido)
+                
+                # Crear respuesta con información del capítulo (sin acceder a curso.nombre)
+                respuesta = f"Según el capítulo '{chapter.titulo}':\n\n{contenido[:500]}..."
+                
+                return {"respuesta": respuesta}
+            else:
+                return {"respuesta": "No encontré información específica sobre tu pregunta. ¿Podrías reformularla o ser más específico?"}
+                
+        except Exception as search_error:
+            logger.error(f"Error en búsqueda semántica: {search_error}")
+            return {"respuesta": f"Tu pregunta sobre '{pregunta}' está siendo procesada. La búsqueda semántica se está inicializando. Por favor, intenta nuevamente en unos minutos."}
         
     except Exception as e:
         logger.error(f"Error en endpoint /ask: {e}")

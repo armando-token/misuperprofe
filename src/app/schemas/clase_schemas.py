@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from app.schemas.profesor_schemas import ProfesorPublic # Para anidar info del profesor
@@ -21,16 +21,14 @@ class GrupoClasePublic(GrupoClaseBase):
     created_at: datetime
     cursos: List[CursoPublico] = [] # Añadir lista de cursos
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AlumnoEnClaseInfo(BaseModel):
     user_id_hash: str
     fecha_inscripcion: datetime
     # Aquí podríamos añadir más adelante el nombre/email del alumno si se decide crear un modelo Alumno
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class GrupoClaseConDetallesPublic(GrupoClasePublic):
     profesores: List[ProfesorPublic] = [] # Lista de profesores asociados
@@ -41,9 +39,7 @@ class GrupoClaseConDetallesPublic(GrupoClasePublic):
 class GrupoClasePublicConAlumnos(GrupoClasePublic):
     alumnos_association: List[AlumnoEnClaseInfo] = Field(default_factory=list, alias="alumnos")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 # Esquema para que un alumno se una a una clase con un código
 class CodigoClaseJoin(BaseModel):

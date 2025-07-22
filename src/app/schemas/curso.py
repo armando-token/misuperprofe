@@ -1,7 +1,7 @@
 """Esquemas para el modelo Curso."""
 
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 from .base import BaseSchema, TimestampSchema
@@ -30,9 +30,7 @@ class CursoSchema(CursoBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        """Configuración del esquema."""
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CursoPublico(BaseModel):
@@ -40,8 +38,7 @@ class CursoPublico(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CursoPublicoListResponse(BaseModel):

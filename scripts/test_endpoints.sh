@@ -1,7 +1,7 @@
 #!/bin/bash
 
 API_URL="http://localhost:8000"
-API_KEY="Tecsup1983101459"
+API_KEY="${API_KEY:-Tecsup1983101459}"
 USER_ID="demo"
 
 RED='\033[0;31m'

@@ -9,6 +9,9 @@ from app.api.routers.agent_router import agent_router as agent_router_instance
 from app.api.routers.chat_business_router import chat_business_router
 from app.api.log import log_router
 from app.api.lesson import router as lesson_router
+from app.api.simple_lesson import router as simple_lesson_router
+from app.api.achievements import router as achievements_router
+from app.api.course import router as course_router
 from app.core.mcp import mcp
 
 app = FastAPI(
@@ -28,6 +31,9 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(agent_router_instance, prefix=settings.API_V1_STR)
 app.include_router(chat_business_router, prefix=settings.API_V1_STR)
 app.include_router(lesson_router, prefix=settings.API_V1_STR)
+app.include_router(simple_lesson_router, prefix=settings.API_V1_STR)
+app.include_router(achievements_router, prefix=settings.API_V1_STR)
+app.include_router(course_router, prefix=settings.API_V1_STR)
 app.include_router(mcp.router)
 app.include_router(log_router, prefix=settings.API_V1_STR, tags=["Logging"])
 
@@ -43,6 +49,75 @@ logging.info('[LOG MCP] Backend MCP Server arrancando...')
 @app.get(f"{settings.API_V1_STR}/agent/health")
 def health_check():
     return {"status": "ok", "service": "Agent Service"}
+
+@app.get(f"{settings.API_V1_STR}/courses")
+def get_courses():
+    """
+    Endpoint para obtener la lista de cursos disponibles
+    """
+    courses = [
+        {
+            "id": "biologia",
+            "name": "Biología",
+            "description": "Estudio de los seres vivos y sus procesos",
+            "chapters": 5
+        },
+        {
+            "id": "historia",
+            "name": "Historia",
+            "description": "Estudio del pasado humano y sus eventos",
+            "chapters": 4
+        },
+        {
+            "id": "lenguaje",
+            "name": "Lenguaje",
+            "description": "Comunicación y expresión escrita",
+            "chapters": 3
+        },
+        {
+            "id": "geografia",
+            "name": "Geografía",
+            "description": "Estudio de la Tierra y sus características",
+            "chapters": 4
+        },
+        {
+            "id": "filosofia",
+            "name": "Filosofía",
+            "description": "Reflexión sobre la existencia y el conocimiento",
+            "chapters": 3
+        },
+        {
+            "id": "literatura",
+            "name": "Literatura",
+            "description": "Arte de la expresión escrita",
+            "chapters": 4
+        },
+        {
+            "id": "economia",
+            "name": "Economía",
+            "description": "Estudio de la producción y distribución de recursos",
+            "chapters": 3
+        },
+        {
+            "id": "civica",
+            "name": "Cívica",
+            "description": "Derechos y deberes ciudadanos",
+            "chapters": 3
+        },
+        {
+            "id": "psicologia",
+            "name": "Psicología",
+            "description": "Estudio del comportamiento humano",
+            "chapters": 4
+        },
+        {
+            "id": "cultura_general",
+            "name": "Cultura General",
+            "description": "Conocimientos generales y actualidad",
+            "chapters": 5
+        }
+    ]
+    return {"courses": courses, "total": len(courses)}
 
 @app.get("/copilotkit")
 @app.get("/copilotkit/")

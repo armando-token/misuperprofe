@@ -1,18 +1,14 @@
 import os
 from fastapi import FastAPI, Request, HTTPException, Header
 import uvicorn
-from copilotkit import CopilotKitRemoteEndpoint
-from copilotkit.integrations.fastapi import add_fastapi_endpoint
-from copilotkit.langgraph_agent import LangGraphAgent
-from copilotkit.types import Message as CopilotMessage, MetaEvent
-from copilotkit.action import ActionDict
-from typing import Annotated, Any, Mapping, Sequence, TypedDict, Union, AsyncGenerator, Optional, List
+from typing import Annotated, Any, AsyncGenerator, Optional, List
 from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import logging
 import hashlib
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from dotenv import load_dotenv
 from app.core.mcp import mcp  # Importo el router MCP
@@ -20,7 +16,7 @@ from app.core.mcp import mcp  # Importo el router MCP
 # Importar el grafo del agente desde su nueva ubicación
 from app.agents_langgraph_example.agent import graph as actual_langgraph_executable_graph
 
-# LangGraph and CopilotKit related imports
+# LangGraph related imports
 from langgraph.checkpoint.memory import InMemorySaver
 
 # Cargar el archivo .env desde el directorio raíz del proyecto
@@ -36,12 +32,11 @@ app = FastAPI()
 app.include_router(mcp.router)
 
 # CORS Middleware - Más flexible para desarrollo
-# Permitir localhost y la IP pública para facilitar las pruebas
-# En producción, esto debería ser más restrictivo.
 origins = [
     "http://localhost:5174",
     "http://127.0.0.1:5174",
     "http://18.214.59.62:5174",
+    "https://app.misuperprofe.com",
 ]
 
 app.add_middleware(
@@ -59,115 +54,187 @@ langgraph_agent_config = {
     }
 }
 
-class AuthenticatedLangGraphAgent(LangGraphAgent):
-    async def execute(self, *args, **kwargs) -> AsyncGenerator[Any, None]:
-        config = kwargs.get("config", {})
-        logger.info(f"[AUTH_DEBUG] Config recibido en execute: {json.dumps(config, indent=2)}")
+# Modelos Pydantic para las requests
+class ChatRequest(BaseModel):
+    message: str
+    user_id: Optional[str] = None
+    user_name: Optional[str] = None
+    session_id: Optional[str] = None
 
-        # CopilotKit v1.8+ anida el contexto
-        context = config.get("context", {})
-        headers = context.get("headers", {})
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
+    user_id: Optional[str] = None
 
-        user_id = headers.get("x-wordpress-user-id")
-        display_name = headers.get("x-wordpress-display-name")
-        
-        logger.info(f"[AUTH_DEBUG] Headers recibidas: {json.dumps(headers, indent=2)}")
-        logger.info(f"[AUTH_DEBUG] user_id extraído: {user_id}, display_name extraído: {display_name}")
-
-        # Inyectar en el estado inicial si existen
-        # El estado se pasa como el primer argumento posicional a LangGraph
-        state = args[0] if args else {}
-        if isinstance(state, dict):
-            if user_id:
-                state["user_id"] = user_id
-            if display_name:
-                state["nombre_usuario"] = display_name
-        
-        # --- STREAMING CORRECTO ---
-        async for chunk in super().execute(*args, **kwargs):
-            yield chunk
-
-copilotkit_ep = CopilotKitRemoteEndpoint(
-    agents=[
-        AuthenticatedLangGraphAgent(
-            name="misuperprofe_agent",
-            description="Asistente inteligente de MiSuperProfe para ayudarte a estudiar.",
-            graph=actual_langgraph_executable_graph,
-            langgraph_config=langgraph_agent_config,
-        )
-    ]
-)
-
-add_fastapi_endpoint(app, copilotkit_ep, "/copilotkit")
+def get_user_hash(user_id: str) -> str:
+    """Genera un hash del user_id para identificación anónima."""
+    return hashlib.sha256(user_id.encode()).hexdigest()
 
 @app.get("/health")
 def health():
-    """Health check."""
-    return {'status': 'ok'}
+    """Health check endpoint."""
+    return {"status": "healthy", "service": "LangGraph Agent Service"}
 
-# --- LOGGING DE HEADERS PERSONALIZADOS PARA AUDITORÍA ---
 @app.middleware("http")
 async def log_custom_headers(request: Request, call_next):
-    user_id = request.headers.get("x-wordpress-user-id")
-    display_name = request.headers.get("x-wordpress-display-name")
-    logging.info(f"[AUDIT] Headers recibidos: X-Wordpress-User-ID={user_id}, X-Wordpress-Display-Name={display_name}")
+    """Middleware para logging de headers personalizados."""
+    logger.info(f"[LOG MCP] Request: {request.method} {request.url}")
+    logger.info(f"[AUDIT] Headers recibidos: X-Wordpress-User-ID={request.headers.get('x-wordpress-user-id', 'None')}, X-Wordpress-Display-Name={request.headers.get('x-wordpress-display-name', 'None')}")
     response = await call_next(request)
     return response
 
-# --- Corrección 3: Función para calcular el hash del usuario ---
-def get_user_hash(user_id: str) -> str:
-    """Calcula un hash SHA-256 consistente para el ID de usuario."""
-    return hashlib.sha256(user_id.encode()).hexdigest()
-
-# El endpoint principal del agente, modificado para capturar headers
-@app.post("/agent/chat", response_class=StreamingResponse)
+@app.post("/agent/chat", response_model=ChatResponse)
 async def agent_chat_endpoint(
-    request: Request,
+    request: ChatRequest,
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    x_user_name: Optional[str] = Header(None, alias="X-User-Name")
+) -> ChatResponse:
+    """
+    Endpoint simplificado para chat con el agente LangGraph.
+    Sin CopilotKit, usando solo LangGraph puro.
+    """
+    try:
+        # Obtener user_id del request o header
+        user_id = request.user_id or x_user_id or "anonymous"
+        user_name = request.user_name or x_user_name or "Usuario"
+        session_id = request.session_id or str(uuid4())
+        
+        logger.info(f"Chat request from user: {user_id} ({user_name})")
+        
+        # Crear estado inicial para LangGraph
+        initial_state = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": request.message
+                }
+            ],
+            "user_id": user_id,
+            "user_name": user_name,
+            "session_id": session_id
+        }
+        
+        # Ejecutar el grafo de LangGraph
+        config = {
+            "configurable": {
+                "checkpointer": checkpointer,
+            },
+            "metadata": {
+                "user_id": user_id,
+                "user_name": user_name,
+                "session_id": session_id
+            }
+        }
+        
+        # Ejecutar el grafo
+        result = await actual_langgraph_executable_graph.ainvoke(
+            initial_state,
+            config=config
+        )
+        
+        # Extraer la respuesta del resultado
+        if "messages" in result and result["messages"]:
+            # Obtener el último mensaje del agente
+            agent_messages = [msg for msg in result["messages"] if msg.get("role") == "assistant"]
+            if agent_messages:
+                response_content = agent_messages[-1].get("content", "No se pudo generar una respuesta.")
+            else:
+                response_content = "No se pudo generar una respuesta."
+        else:
+            response_content = "No se pudo procesar la solicitud."
+        
+        return ChatResponse(
+            response=response_content,
+            session_id=session_id,
+            user_id=user_id
+        )
+        
+    except Exception as e:
+        logger.error(f"Error en agent_chat_endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
+
+@app.post("/agent/chat/stream")
+async def agent_chat_stream_endpoint(
+    request: ChatRequest,
     x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
     x_user_name: Optional[str] = Header(None, alias="X-User-Name")
 ) -> StreamingResponse:
-    
-    # ... (código existente para decodificar el raw_body)
+    """
+    Endpoint para streaming de chat con el agente LangGraph.
+    """
+    try:
+        user_id = request.user_id or x_user_id or "anonymous"
+        user_name = request.user_name or x_user_name or "Usuario"
+        session_id = request.session_id or str(uuid4())
+        
+        logger.info(f"Streaming chat request from user: {user_id} ({user_name})")
+        
+        # Crear estado inicial
+        initial_state = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": request.message
+                }
+            ],
+            "user_id": user_id,
+            "user_name": user_name,
+            "session_id": session_id
+        }
+        
+        config = {
+            "configurable": {
+                "checkpointer": checkpointer,
+            },
+            "metadata": {
+                "user_id": user_id,
+                "user_name": user_name,
+                "session_id": session_id
+            }
+        }
+        
+        async def generate_stream():
+            try:
+                async for chunk in actual_langgraph_executable_graph.astream(
+                    initial_state,
+                    config=config
+                ):
+                    if "messages" in chunk and chunk["messages"]:
+                        # Obtener el último mensaje del agente
+                        agent_messages = [msg for msg in chunk["messages"] if msg.get("role") == "assistant"]
+                        if agent_messages:
+                            content = agent_messages[-1].get("content", "")
+                            if content:
+                                yield f"data: {json.dumps({'content': content, 'session_id': session_id})}\n\n"
+                
+                yield f"data: {json.dumps({'content': '[DONE]', 'session_id': session_id})}\n\n"
+                
+            except Exception as e:
+                logger.error(f"Error en streaming: {e}")
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        
+        return StreamingResponse(
+            generate_stream(),
+            media_type="text/plain",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Content-Type": "text/event-stream"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error en agent_chat_stream_endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
 
-    # --- Corrección 3: Inyección de contexto de usuario ---
-    user_email = x_user_id
-    user_name = x_user_name
-    user_hash = get_user_hash(user_email) if user_email else None
-    
-    # ... (código existente para extraer mensajes y thread_id del raw_body)
-
-    # ... (código existente para manejar errores de datos insuficientes)
-
-    initial_state_dict = {
-        "messages": langchain_messages,
-        "thread_id": thread_id,
-        "run_id": run_id_for_emitter,
-        # Inyectar datos de usuario al estado inicial del grafo
-        "user_email": user_email,
-        "user_name": user_name,
-        "user_hash": user_hash,
-        # Inicializar otros campos del estado
-        "last_question_id": None,
-        "last_question_theory": None,
-        "last_course": None,
-        "lesson_session_id": None,
-        "is_lesson_active": False,
-        "awaiting_user_response": False,
-    }
-
-    # ... (código existente para crear initial_state, event_emitter y la tarea del grafo)
-    
-    # El resto de la función sigue igual...
-    
 def main():
-    """Run the uvicorn server."""
-    port = int(os.getenv('PORT', '8001'))
+    """Función principal para ejecutar el servidor."""
     uvicorn.run(
-        app,
+        "app.langgraph_server_example:app",
         host="0.0.0.0",
-        port=port,
-        log_level="info"
+        port=8001,
+        reload=False
     )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

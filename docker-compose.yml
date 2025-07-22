@@ -49,7 +49,7 @@ services:
       - ENVIRONMENT=development
       - APP_NAME=MySuperProfeAPI
       - API_V1_STR=/api/v1
-      - API_KEY=Tecsup1983101459
+      - API_KEY=${API_KEY}
       - GOOGLE_API_KEY=AIzaSyDittK9k8Hl8xb96X9sMnaB2zundXA1QXQ
       - LANGSMITH_API_KEY=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
       - OPENAI_API_KEY=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

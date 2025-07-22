@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from app.models.adaptive import UserChapterStatus # Importar el Enum del modelo
 
@@ -8,8 +8,7 @@ class ProgresoCapituloParaProfesor(BaseModel):
     estado: UserChapterStatus
     porcentaje_completado: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ProgresoCursoParaProfesor(BaseModel):
     id_curso: int
@@ -17,8 +16,7 @@ class ProgresoCursoParaProfesor(BaseModel):
     progreso_general_curso: int
     capitulos: List[ProgresoCapituloParaProfesor]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ProgresoAlumnoGlobal(BaseModel):
     user_id_hash: str
@@ -27,5 +25,4 @@ class ProgresoAlumnoGlobal(BaseModel):
     # Aquí se podrían añadir más campos globales si es necesario,
     # como racha_mas_larga, temas_dominados_count, etc.
 
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True) 

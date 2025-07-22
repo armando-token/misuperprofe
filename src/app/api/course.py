@@ -1,202 +1,208 @@
-import sys
-sys.path.append('/app')
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+"""
+Endpoints para cursos y capítulos.
+"""
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from typing import List
+from pydantic import BaseModel, ConfigDict
+from datetime import datetime
+import logging
+from typing import Optional, List
+
+from app.db.session import get_session
 from app.models.curso import Curso
 from app.models.capitulo import Capitulo
-from app.db.session import get_session as get_db
-from app.models.adaptive import UserChapterStatus, ProgressUnit
-from app.chapter_schemas import CourseChapterListResponse, ChapterWithProgress, UserProgressState
-from app.chapter_schemas import ChapterBasicInfo, CourseChapterBasicListResponse
-from app.schemas.curso import CursoPublicoListResponse, CursoPublico
+from app.config import settings
 
-# Nuevas importaciones para la autenticación OAuth Team
-from app.api.dependencies_team import get_current_team_user_claims
-from app.schemas.token_claims import TokenClaims
+router = APIRouter(prefix="/course", tags=["course"])
+logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/courses", tags=["courses"])
+# Modelos Pydantic
+class ChapterInfo(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    titulo: str
+    orden: int
+    curso_id: int
+    resumen: Optional[str] = None
 
-@router.get("/{course_name}/chapters", response_model=CourseChapterListResponse)
-async def list_course_chapters_with_progress(
-    course_name: str,
-    page: int = Query(1, ge=1, description="Número de página para paginación"),
-    page_size: int = Query(20, ge=1, le=100, description="Cantidad de capítulos por página"),
-    db: AsyncSession = Depends(get_db),
-    current_claims: TokenClaims = Depends(get_current_team_user_claims)
+class CourseChaptersResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    course_id: str
+    course_name: str
+    chapters: List[ChapterInfo]
+    total_chapters: int
+
+def verify_bearer_token(request: Request):
+    """Verifica el Bearer token."""
+    auth = request.headers.get("Authorization")
+    if not auth or auth != f"Bearer {settings.API_KEY}":
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    return True
+
+@router.get("/{course_name}/chapters", response_model=CourseChaptersResponse)
+async def get_course_chapters(
+    course_name: str = Path(..., description="Nombre del curso"),
+    page: int = Query(1, ge=1, description="Número de página"),
+    page_size: int = Query(10, ge=1, le=100, description="Tamaño de página"),
+    request: Request = None,
+    db: AsyncSession = Depends(get_session)
 ):
-    user_id_hash_from_token = current_claims.sub
-    # Buscar el curso
-    result = await db.execute(select(Curso).where(Curso.nombre.ilike(f"%{course_name}%")))
-    db_course = result.scalars().first()
-    if not db_course:
-        raise HTTPException(status_code=404, detail=f"Curso '{course_name}' no encontrado.")
-    # Obtener el total de capítulos de forma eficiente
-    total_result = await db.execute(
-        select(func.count()).select_from(Capitulo).where(Capitulo.curso_id == db_course.id)
-    )
-    total_chapters = total_result.scalar_one()
-    offset = (page - 1) * page_size
-    result = await db.execute(
-        select(Capitulo)
-        .where(Capitulo.curso_id == db_course.id)
-        .order_by(Capitulo.orden.asc().nulls_last(), Capitulo.id.asc())
-        .offset(offset)
-        .limit(page_size)
-    )
-    db_chapters = result.scalars().all()
-    chapters_with_progress_list = []
-    for chapter in db_chapters:
-        result = await db.execute(
-            select(ProgressUnit).where(
-                ProgressUnit.user_id_hash == user_id_hash_from_token,
-                ProgressUnit.chapter_id == chapter.id
+    """
+    Obtiene los capítulos de un curso específico con paginación.
+    """
+    verify_bearer_token(request)
+    
+    try:
+        # Buscar el curso por nombre (case insensitive)
+        curso_result = await db.execute(
+            select(Curso).filter(Curso.nombre.ilike(f"%{course_name}%"))
+        )
+        curso = curso_result.scalars().first()
+        
+        if not curso:
+            raise HTTPException(status_code=404, detail=f"Curso '{course_name}' no encontrado")
+        
+        # Obtener capítulos del curso con paginación
+        offset = (page - 1) * page_size
+        
+        chapters_result = await db.execute(
+            select(Capitulo)
+            .filter(Capitulo.curso_id == curso.id)
+            .order_by(Capitulo.orden)
+            .offset(offset)
+            .limit(page_size)
+        )
+        chapters = chapters_result.scalars().all()
+        
+        # Contar total de capítulos
+        total_result = await db.execute(
+            select(func.count(Capitulo.id))
+            .filter(Capitulo.curso_id == curso.id)
+        )
+        total_chapters = total_result.scalar()
+        
+        # Preparar respuesta
+        chapter_list = []
+        for chapter in chapters:
+            # Crear resumen del contenido
+            content = chapter.contenido_html or chapter.contenido_md or ""
+            if len(content) > 200:
+                content = content[:200] + "..."
+            
+            chapter_info = ChapterInfo(
+                id=chapter.id,
+                titulo=chapter.titulo,
+                orden=chapter.orden,
+                curso_id=chapter.curso_id,
+                resumen=content
             )
+            chapter_list.append(chapter_info)
+        
+        return CourseChaptersResponse(
+            course_id=course_name,
+            course_name=curso.nombre,
+            chapters=chapter_list,
+            total_chapters=total_chapters
         )
-        user_progress_db = result.scalars().first()
-        if user_progress_db:
-            current_status = user_progress_db.state
-            if isinstance(current_status, str):
-                current_status = current_status.lower()
-            current_percentage = user_progress_db.porcentaje
-        else:
-            current_status = UserChapterStatus.NO_INICIADO.value
-            current_percentage = 0
-        puede_iniciar_o_continuar = (current_status != UserChapterStatus.COMPLETADO.value)
-        estado_usuario_data = UserProgressState(
-            status=current_status,
-            porcentaje_avance=current_percentage,
-            puede_iniciar_o_continuar=puede_iniciar_o_continuar
-        )
-        chapters_with_progress_list.append(
-            ChapterWithProgress(
-                chapter_id=str(chapter.id),
-                title=chapter.titulo,
-                order=chapter.orden,
-                estado_usuario=estado_usuario_data
-            )
-        )
-    has_next = (offset + len(chapters_with_progress_list)) < total_chapters
-    return CourseChapterListResponse(
-        course_name=db_course.nombre,
-        chapters=chapters_with_progress_list,
-        total=total_chapters,
-        page=page,
-        page_size=page_size,
-        has_next=has_next
-    )
+        
+    except Exception as e:
+        logger.error(f"Error en get_course_chapters: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
 
-@router.get("/{course_name}/chapters/{chapter_id}", response_model=ChapterWithProgress)
-async def get_chapter_detail_with_progress(
-    course_name: str,
-    chapter_id: int = Path(..., description="ID del capítulo a consultar"),
-    db: AsyncSession = Depends(get_db),
-    current_claims: TokenClaims = Depends(get_current_team_user_claims)
+@router.get("/{course_name}/chapters/{chapter_id}")
+async def get_chapter_detail(
+    course_name: str = Path(..., description="Nombre del curso"),
+    chapter_id: int = Path(..., description="ID del capítulo"),
+    request: Request = None,
+    db: AsyncSession = Depends(get_session)
 ):
-    user_id_hash_from_token = current_claims.sub
-    # Buscar el curso
-    result = await db.execute(select(Curso).where(Curso.nombre.ilike(f"%{course_name}%")))
-    db_course = result.scalars().first()
-    if not db_course:
-        raise HTTPException(status_code=404, detail=f"Curso '{course_name}' no encontrado.")
-    # Buscar el capítulo
-    result = await db.execute(
-        select(Capitulo).where(Capitulo.id == chapter_id, Capitulo.curso_id == db_course.id)
-    )
-    chapter = result.scalars().first()
-    if not chapter:
-        raise HTTPException(status_code=404, detail=f"Capítulo '{chapter_id}' no encontrado en el curso '{course_name}'.")
-    # Buscar progreso del usuario
-    result = await db.execute(
-        select(ProgressUnit).where(
-            ProgressUnit.user_id_hash == user_id_hash_from_token,
-            ProgressUnit.chapter_id == chapter.id
+    """
+    Obtiene el detalle de un capítulo específico.
+    """
+    verify_bearer_token(request)
+    
+    try:
+        # Buscar el curso
+        curso_result = await db.execute(
+            select(Curso).filter(Curso.nombre.ilike(f"%{course_name}%"))
         )
-    )
-    user_progress_db = result.scalars().first()
-    if user_progress_db:
-        current_status = user_progress_db.state
-        if isinstance(current_status, str):
-            current_status = current_status.lower()
-        current_percentage = user_progress_db.porcentaje
-    else:
-        current_status = UserChapterStatus.NO_INICIADO.value
-        current_percentage = 0
-    puede_iniciar_o_continuar = (current_status != UserChapterStatus.COMPLETADO.value)
-    estado_usuario_data = UserProgressState(
-        status=current_status,
-        porcentaje_avance=current_percentage,
-        puede_iniciar_o_continuar=puede_iniciar_o_continuar
-    )
-    return ChapterWithProgress(
-        chapter_id=str(chapter.id),
-        title=chapter.titulo,
-        order=chapter.orden,
-        estado_usuario=estado_usuario_data
-    )
+        curso = curso_result.scalars().first()
+        
+        if not curso:
+            raise HTTPException(status_code=404, detail=f"Curso '{course_name}' no encontrado")
+        
+        # Buscar el capítulo
+        chapter_result = await db.execute(
+            select(Capitulo)
+            .filter(Capitulo.id == chapter_id, Capitulo.curso_id == curso.id)
+        )
+        chapter = chapter_result.scalars().first()
+        
+        if not chapter:
+            raise HTTPException(status_code=404, detail=f"Capítulo {chapter_id} no encontrado en el curso '{course_name}'")
+        
+        return {
+            "id": chapter.id,
+            "titulo": chapter.titulo,
+            "orden": chapter.orden,
+            "curso_id": chapter.curso_id,
+            "contenido_html": chapter.contenido_html,
+            "contenido_md": chapter.contenido_md,
+            "curso_nombre": curso.nombre
+        }
+        
+    except Exception as e:
+        logger.error(f"Error en get_chapter_detail: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
 
-@router.get("", response_model=CursoPublicoListResponse)
-async def listar_cursos(
-    db: AsyncSession = Depends(get_db),
-    current_claims: TokenClaims = Depends(get_current_team_user_claims)
+@router.get("/{course_name}/last-chapter")
+async def get_last_chapter(
+    course_name: str = Path(..., description="Nombre del curso"),
+    request: Request = None,
+    db: AsyncSession = Depends(get_session)
 ):
-    # user_id_hash_from_token = current_claims.sub # Disponible si se necesita para logging o personalización
-    result = await db.execute(select(Curso).order_by(Curso.id))
-    cursos_db = result.scalars().all()
-    cursos_publicos = [
-        CursoPublico(id=c.id, nombre=c.nombre, descripcion=c.descripcion) for c in cursos_db
-    ]
-    return CursoPublicoListResponse(cursos=cursos_publicos)
-
-@router.get("/{course_id}/chapters", response_model=CourseChapterBasicListResponse)
-async def list_course_chapters_basic(
-    course_id: int = Path(..., description="ID del curso para listar sus capítulos"),
-    page: int = Query(1, ge=1, description="Número de página para paginación"),
-    page_size: int = Query(20, ge=1, le=100, description="Cantidad de capítulos por página"),
-    db: AsyncSession = Depends(get_db),
-    current_claims: TokenClaims = Depends(get_current_team_user_claims)
-):
-    # Buscar el curso por ID
-    result = await db.execute(select(Curso).where(Curso.id == course_id))
-    db_course = result.scalars().first()
-    if not db_course:
-        raise HTTPException(status_code=404, detail=f"Curso con ID '{course_id}' no encontrado.")
-
-    # Obtener el total de capítulos del curso
-    total_result = await db.execute(
-        select(func.count(Capitulo.id)).where(Capitulo.curso_id == course_id)
-    )
-    total_chapters = total_result.scalar_one()
-
-    # Obtener los capítulos paginados
-    offset = (page - 1) * page_size
-    chapters_query = (
-        select(Capitulo)
-        .where(Capitulo.curso_id == course_id)
-        .order_by(Capitulo.orden.asc().nulls_last(), Capitulo.id.asc())
-        .offset(offset)
-        .limit(page_size)
-    )
-    result = await db.execute(chapters_query)
-    db_chapters = result.scalars().all()
-
-    chapters_basic_info_list = [
-        ChapterBasicInfo(
-            chapter_id=chapter.id, 
-            title=chapter.titulo, 
-            order=chapter.orden
-        ) for chapter in db_chapters
-    ]
-
-    has_next = (offset + len(chapters_basic_info_list)) < total_chapters
-
-    return CourseChapterBasicListResponse(
-        course_id=db_course.id,
-        course_name=db_course.nombre,
-        chapters=chapters_basic_info_list,
-        total=total_chapters,
-        page=page,
-        page_size=page_size,
-        has_next=has_next
-    ) 
+    """
+    Obtiene el último capítulo de un curso.
+    """
+    verify_bearer_token(request)
+    
+    try:
+        # Buscar el curso
+        curso_result = await db.execute(
+            select(Curso).filter(Curso.nombre.ilike(f"%{course_name}%"))
+        )
+        curso = curso_result.scalars().first()
+        
+        if not curso:
+            raise HTTPException(status_code=404, detail=f"Curso '{course_name}' no encontrado")
+        
+        # Obtener el último capítulo (orden más alto)
+        last_chapter_result = await db.execute(
+            select(Capitulo)
+            .filter(Capitulo.curso_id == curso.id)
+            .order_by(Capitulo.orden.desc())
+            .limit(1)
+        )
+        last_chapter = last_chapter_result.scalars().first()
+        
+        if not last_chapter:
+            raise HTTPException(status_code=404, detail=f"No hay capítulos disponibles para el curso '{course_name}'")
+        
+        return {
+            "id": last_chapter.id,
+            "titulo": last_chapter.titulo,
+            "orden": last_chapter.orden,
+            "curso_id": last_chapter.curso_id,
+            "contenido_html": last_chapter.contenido_html,
+            "contenido_md": last_chapter.contenido_md,
+            "curso_nombre": curso.nombre,
+            "es_ultimo": True
+        }
+        
+    except Exception as e:
+        logger.error(f"Error en get_last_chapter: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}") 

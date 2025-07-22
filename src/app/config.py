@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from pydantic_settings import BaseSettings
+from pydantic import Field, ConfigDict
 import socket
 
 class Settings(BaseSettings):
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 # Por ejemplo, 1 hora
     DOMAIN: str = "app.misuperprofe.com"
+    API_KEY: str = Field(default="", env="API_KEY") # API Key para autenticación Bearer Token
 
     # JWT para Autenticación OAuth 2.0 (Integración ChatGPT Team)
     JWT_OAUTH_SECRET_KEY: str = "another_super_secret_key_for_oauth_change_in_prod"
@@ -88,10 +90,10 @@ class Settings(BaseSettings):
     def ALEMBIC_DATABASE_URL(self) -> str:
         return f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
     
-    class Config:
-        """Configuración de Pydantic."""
-        env_file = ".env"
-        case_sensitive = True
+    model_config = ConfigDict(
+        env_file = ".env",
+        case_sensitive = True,
         extra = "allow"
+    )
 
 settings = Settings() 

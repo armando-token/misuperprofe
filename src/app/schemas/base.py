@@ -1,15 +1,13 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class BaseSchema(BaseModel):
     """Schema base con configuración común."""
     
-    class Config:
-        from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
 class TimestampSchema(BaseSchema):

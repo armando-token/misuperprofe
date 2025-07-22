@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.models.adaptive import UserChapterStatus
 
 class UserProgressState(BaseModel):
@@ -12,8 +12,7 @@ class ChapterWithProgress(BaseModel):
     title: str
     order: Optional[int] = None
     estado_usuario: UserProgressState
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CourseChapterListResponse(BaseModel):
     course_name: str
@@ -28,8 +27,7 @@ class ChapterBasicInfo(BaseModel):
     title: str
     order: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CourseChapterBasicListResponse(BaseModel):
     course_id: int

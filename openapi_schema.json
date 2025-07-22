@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "MiSuperProfe API",
-    "description": "API para el tutor inteligente de MiSuperProfe",
-    "version": "1.0.0"
+    "title": "Misuperprofe Tutor API",
+    "version": "1.0.0",
+    "description": "API para teoría, práctica, lecciones adaptativas, métricas y recomendaciones."
   },
   "servers": [
     {
@@ -13,215 +13,620 @@
   "paths": {
     "/ask": {
       "post": {
-        "operationId": "askQuestion",
-        "summary": "Buscar respuesta a una pregunta",
-        "description": "Busca la respuesta a una pregunta usando búsqueda semántica en el contenido disponible",
+        "summary": "Consulta de teoría o definición",
+        "operationId": "ask",
+        "tags": ["teoria"],
+        "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AskRequest"
+                "type": "object",
+                "properties": {
+                  "pregunta": {"type": "string", "description": "Consulta teórica o definición"}
+                },
+                "required": ["pregunta"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Respuesta encontrada",
+            "description": "Respuesta teórica",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AskResponse"
+                  "type": "object",
+                  "properties": {
+                    "respuesta": {"type": "string", "description": "Respuesta textual a la consulta"}
+                  },
+                  "required": ["respuesta"]
                 }
               }
             }
           },
-          "400": {
-            "description": "Pregunta requerida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error interno del servidor",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
+          "403": {"description": "Token requerido"},
+          "404": {"description": "Teoría no encontrada"}
         }
       }
     },
     "/get_question": {
-      "post": {
+      "get": {
+        "summary": "Obtener pregunta de práctica individual",
         "operationId": "getQuestion",
-        "summary": "Generar pregunta de práctica",
-        "description": "Genera una pregunta de práctica para un curso y capítulo específico",
+        "tags": ["practica"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "course", "in": "query", "required": true, "schema": {"type": "string"}},
+          {"name": "topic", "in": "query", "required": false, "schema": {"type": "string"}},
+          {"name": "chapter_id", "in": "query", "required": false, "schema": {"type": "integer"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Pregunta de práctica",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "question_id": {"type": "string"},
+                    "question": {"type": "string"},
+                    "options": {"type": "array", "items": {"type": "string"}},
+                    "theory_content": {"type": "string"}
+                  },
+                  "required": ["question_id", "question", "options"]
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"},
+          "404": {"description": "Pregunta no encontrada"}
+        }
+      }
+    },
+    "/log_result": {
+      "post": {
+        "summary": "Registrar intento de respuesta",
+        "operationId": "logResult",
+        "tags": ["practica"],
+        "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetQuestionRequest"
+                "type": "object",
+                "properties": {
+                  "user_id": {"type": "string"},
+                  "user_id_hash": {"type": "string"},
+                  "question_id": {"type": "string"},
+                  "answer": {"type": "string"},
+                  "is_correct": {"type": "boolean"},
+                  "course": {"type": "string"},
+                  "topic": {"type": "string"}
+                },
+                "required": ["user_id", "user_id_hash", "question_id", "answer", "is_correct", "course"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Pregunta generada",
+            "description": "Intento registrado",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetQuestionResponse"
+                  "type": "object",
+                  "properties": {
+                    "ok": {"type": "boolean", "description": "Registro exitoso"}
+                  },
+                  "required": ["ok"]
                 }
               }
             }
           },
-          "404": {
-            "description": "Curso o capítulo no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error interno del servidor",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
+          "403": {"description": "Token requerido"}
         }
       }
     },
-    "/agent/health": {
-      "get": {
-        "operationId": "getHealth",
-        "summary": "Verificar estado del servicio",
-        "description": "Endpoint de health check para verificar que el servicio esté funcionando",
-        "responses": {
-          "200": {
-            "description": "Servicio funcionando",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
+    "/api/lesson/start": {
+      "post": {
+        "summary": "Iniciar lección adaptativa",
+        "operationId": "iniciarLeccionAdaptativa",
+        "tags": ["lesson"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["user_id_hash", "course"],
+                "properties": {
+                  "user_id_hash": {"type": "string", "description": "Hash único del usuario"},
+                  "course": {"type": "string", "description": "Nombre del curso (ej: biologia)"},
+                  "topic": {"type": "string", "description": "Tema o capítulo (opcional)"},
+                  "unit_id": {"type": "integer", "description": "ID de unidad/capítulo (opcional)"},
+                  "chapter_id": {"type": "integer", "description": "ID de capítulo (opcional)"}
                 }
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión de lección iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["session_id", "course", "current_item_id", "user_theta"],
+                  "properties": {
+                    "session_id": {"type": "string", "description": "ID único de la sesión de lección."},
+                    "is_resumed": {"type": "boolean", "default": false, "description": "Indica si la sesión fue reanudada (true) o es nueva (false)."},
+                    "course": {"type": "string", "description": "Nombre del curso."},
+                    "topic": {"type": "string", "nullable": true, "description": "Tema específico dentro del curso, si aplica."},
+                    "current_item_id": {"type": "integer"},
+                    "current_item_content_html": {"type": "string", "nullable": true, "description": "Contenido HTML del ítem actual."},
+                    "item_beta_difficulty": {"type": "number"},
+                    "user_theta": {"type": "number"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Sesión ya activa o error de parámetros"},
+          "403": {"description": "Token requerido"},
+          "404": {"description": "Curso o capítulo no encontrado"}
+        }
+      }
+    },
+    "/api/lesson/answer": {
+      "post": {
+        "summary": "Registrar respuesta a ítem de lección",
+        "operationId": "responderLeccionAdaptativa",
+        "tags": ["lesson"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["session_id", "item_id"],
+                "properties": {
+                  "session_id": {"type": "string"},
+                  "item_id": {"type": "string"},
+                  "is_correct": {"type": "boolean", "description": "(opcional, compatibilidad retroactiva)"},
+                  "item_overall_correct": {"type": "boolean", "description": "(opcional, compatibilidad retroactiva)"},
+                  "item_accuracy_metric": {"type": "number", "description": "Precisión granular (0.0-1.0)"},
+                  "latency_ms": {"type": "integer"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback y siguiente ítem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "next_item_id": {"type": "integer"},
+                    "next_item_content": {"type": "string"},
+                    "previous_mistake": {"type": "boolean"},
+                    "xp_earned": {"type": "integer"},
+                    "local_streak": {"type": "integer"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Sesión no activa o error de parámetros"},
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/api/lesson/complete": {
+      "post": {
+        "summary": "Completar lección adaptativa",
+        "operationId": "completarLeccionAdaptativa",
+        "tags": ["lesson"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["session_id"],
+                "properties": {
+                  "session_id": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resumen de la lección completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["xp", "claim_token"],
+                  "properties": {
+                    "xp": {"type": "integer"},
+                    "accuracy": {"type": "number"},
+                    "duration": {"type": "integer"},
+                    "claim_token": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/user_stats": {
+      "get": {
+        "summary": "Obtener estadísticas del usuario",
+        "operationId": "getUserStats",
+        "tags": ["usuario"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "user_id", "in": "query", "required": true, "schema": {"type": "string"}, "description": "El ID de usuario (ej. email) para consultar estadísticas."}
+        ],
+        "responses": {
+          "200": {
+            "description": "Estadísticas del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "xp": {"type": "integer"},
+                    "accuracy": {"type": "number"},
+                    "progress": {"type": "string"}
+                  },
+                  "required": ["xp", "accuracy", "progress"]
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/recomendar_plan_estudio": {
+      "get": {
+        "summary": "Recomendar plan de estudio",
+        "operationId": "recomendarPlanEstudio",
+        "tags": ["usuario"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "user_id", "in": "query", "required": true, "schema": {"type": "string"}, "description": "El ID de usuario (ej. email) para obtener recomendaciones."}
+        ],
+        "responses": {
+          "200": {
+            "description": "Plan de estudio recomendado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan": {"type": "string"}
+                  },
+                  "required": ["plan"]
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      },
+    "/courses": {
+      "get": {
+        "summary": "Listar todos los cursos disponibles",
+        "operationId": "listarCursos",
+        "tags": ["curso"],
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de cursos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "courses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "description": { "type": "string" },
+                          "chapters": { "type": "integer" }
+                        },
+                        "required": ["id", "name", "description", "chapters"]
+                      }
+                    },
+                    "total": { "type": "integer" }
+                  },
+                  "required": ["courses", "total"]
+                }
+              }
+            }
+          },
+          "403": { "description": "Token requerido" }
+        }
+      }
+    },
+    "/simple_lesson/start": {
+      "post": {
+        "summary": "Iniciar lección simplificada",
+        "operationId": "startSimpleLesson",
+        "tags": ["lecciones"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {"type": "string"},
+                  "course": {"type": "string"},
+                  "topic": {"type": "string"},
+                  "chapter_id": {"type": "integer"}
+                },
+                "required": ["user_id", "course"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lección iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "session_id": {"type": "string"},
+                    "started_at": {"type": "string", "format": "date-time"},
+                    "course": {"type": "string"},
+                    "chapter_id": {"type": "integer"},
+                    "chapter_title": {"type": "string"},
+                    "chapter_content": {"type": "string"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"},
+          "404": {"description": "Curso no encontrado"}
+        }
+      }
+    },
+    "/simple_lesson/answer": {
+      "post": {
+        "summary": "Responder pregunta de lección",
+        "operationId": "answerSimpleLesson",
+        "tags": ["lecciones"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "session_id": {"type": "string"},
+                  "user_id": {"type": "string"},
+                  "answer": {"type": "string"},
+                  "is_correct": {"type": "boolean"},
+                  "question_id": {"type": "string"},
+                  "course": {"type": "string"},
+                  "topic": {"type": "string"}
+                },
+                "required": ["session_id", "user_id", "answer", "is_correct", "question_id", "course", "topic"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta procesada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "next_chapter_id": {"type": "integer"},
+                    "next_chapter_title": {"type": "string"},
+                    "next_chapter_content": {"type": "string"},
+                    "xp_earned": {"type": "integer"},
+                    "message": {"type": "string"},
+                    "lesson_completed": {"type": "boolean"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/achievements/user/{user_id}": {
+      "get": {
+        "summary": "Obtener logros y estadísticas del usuario",
+        "operationId": "getUserAchievements",
+        "tags": ["logros"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "user_id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Logros del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {"type": "string"},
+                    "total_xp": {"type": "integer"},
+                    "current_streak": {"type": "integer"},
+                    "longest_streak": {"type": "integer"},
+                    "achievements": {"type": "array", "items": {"type": "string"}},
+                    "rank": {"type": "integer"},
+                    "level": {"type": "integer"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/achievements/leaderboard": {
+      "get": {
+        "summary": "Obtener leaderboard de XP",
+        "operationId": "getAchievementsLeaderboard",
+        "tags": ["logros"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "league_id", "in": "query", "required": false, "schema": {"type": "string", "default": "global_weekly"}},
+          {"name": "top_n", "in": "query", "required": false, "schema": {"type": "integer", "default": 10}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Leaderboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "league_id": {"type": "string"},
+                    "top_n": {"type": "integer"},
+                    "leaderboard": {"type": "array", "items": {"type": "object"}}
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/course/{course_name}/chapters": {
+      "get": {
+        "summary": "Obtener capítulos de un curso",
+        "operationId": "getCourseChapters",
+        "tags": ["cursos"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "course_name", "in": "path", "required": true, "schema": {"type": "string"}},
+          {"name": "page", "in": "query", "required": false, "schema": {"type": "integer", "default": 1}},
+          {"name": "page_size", "in": "query", "required": false, "schema": {"type": "integer", "default": 10}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de capítulos del curso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "course_id": {"type": "string"},
+                    "course_name": {"type": "string"},
+                    "chapters": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "integer"},
+                          "titulo": {"type": "string"},
+                          "orden": {"type": "integer"},
+                          "curso_id": {"type": "integer"},
+                          "resumen": {"type": "string"}
+                        }
+                      }
+                    },
+                    "total_chapters": {"type": "integer"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"},
+          "404": {"description": "Curso no encontrado"}
+        }
+      }
+    },
+    "/course/{course_name}/chapters": {
+      "get": {
+        "summary": "Obtener todos los capítulos de un curso (para interpretación dinámica)",
+        "operationId": "getCourseChapters",
+        "tags": ["cursos"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "course_name", "in": "path", "required": true, "schema": {"type": "string"}},
+          {"name": "page", "in": "query", "required": false, "schema": {"type": "integer", "default": 1}},
+          {"name": "page_size", "in": "query", "required": false, "schema": {"type": "integer", "default": 100}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista completa de capítulos del curso para interpretación dinámica",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "course_id": {"type": "string"},
+                    "course_name": {"type": "string"},
+                    "chapters": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "integer"},
+                          "titulo": {"type": "string"},
+                          "orden": {"type": "integer"},
+                          "curso_id": {"type": "integer"},
+                          "resumen": {"type": "string"}
+                        }
+                      }
+                    },
+                    "total_chapters": {"type": "integer"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"},
+          "404": {"description": "Curso no encontrado"}
         }
       }
     }
   },
   "components": {
-    "schemas": {
-      "AskRequest": {
-        "type": "object",
-        "properties": {
-          "pregunta": {
-            "type": "string",
-            "description": "La pregunta del estudiante"
-          }
-        },
-        "required": ["pregunta"]
-      },
-      "AskResponse": {
-        "type": "object",
-        "properties": {
-          "respuesta": {
-            "type": "string",
-            "description": "La respuesta a la pregunta"
-          }
-        }
-      },
-      "GetQuestionRequest": {
-        "type": "object",
-        "properties": {
-          "course": {
-            "type": "string",
-            "description": "Nombre del curso"
-          },
-          "chapter_id": {
-            "type": "string",
-            "description": "ID del capítulo"
-          }
-        },
-        "required": ["course", "chapter_id"]
-      },
-      "GetQuestionResponse": {
-        "type": "object",
-        "properties": {
-          "pregunta": {
-            "type": "string",
-            "description": "La pregunta generada"
-          },
-          "opciones": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Opciones de respuesta"
-          },
-          "respuesta_correcta": {
-            "type": "string",
-            "description": "La respuesta correcta"
-          },
-          "explicacion": {
-            "type": "string",
-            "description": "Explicación de la respuesta"
-          }
-        }
-      },
-      "HealthResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Estado del servicio"
-          },
-          "service": {
-            "type": "string",
-            "description": "Nombre del servicio"
-          }
-        }
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "detail": {
-            "type": "string",
-            "description": "Descripción del error"
-          }
-        }
-      }
-    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
-    }
-  },
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ]
+    },
+    "schemas": {}
+  }
 } 

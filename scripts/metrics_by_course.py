@@ -1,9 +1,10 @@
 import requests
 import sys
+import os
 from tabulate import tabulate
 
 API_URL = "http://localhost:8000/user_stats"
-API_KEY = "your_api_key_here"
+API_KEY = os.getenv("API_KEY", "your_api_key_here")
 USER_ID = sys.argv[1] if len(sys.argv) > 1 else "demo"
 
 headers = {"Authorization": f"Bearer {API_KEY}"}

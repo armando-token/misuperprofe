@@ -12,6 +12,7 @@ from app.api.lesson import router as lesson_router
 from app.api.simple_lesson import router as simple_lesson_router
 from app.api.achievements import router as achievements_router
 from app.api.course import router as course_router
+from app.api.analytics import analytics_router
 from app.core.mcp import mcp
 
 app = FastAPI(
@@ -34,11 +35,12 @@ app.include_router(lesson_router, prefix=settings.API_V1_STR)
 app.include_router(simple_lesson_router, prefix=settings.API_V1_STR)
 app.include_router(achievements_router, prefix=settings.API_V1_STR)
 app.include_router(course_router, prefix=settings.API_V1_STR)
+app.include_router(analytics_router, prefix=settings.API_V1_STR, tags=["Analytics"])
 app.include_router(mcp.router)
 app.include_router(log_router, prefix=settings.API_V1_STR, tags=["Logging"])
 
 # Importar explícitamente los módulos de tools para registrar las tools en MCP
-from app.tools import recomendador, graficos, calificar
+from app.tools import recomendador, graficos, calificar, cache_optimizer, ux_enhancer
 
 # Configuración explícita de logging para imprimir en consola
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')

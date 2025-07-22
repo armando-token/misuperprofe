@@ -12,20 +12,21 @@ import numpy as np
 from app.db.session import get_session
 from app.resources.metricas import obtener_metricas_por_materia
 from app.core.mcp import mcp
+from sqlalchemy import text
 
 # Configuración de estilo
 sns.set_theme()
 
 @mcp.tool()
 async def generar_grafico_metricas(
-    alumno_id: int,
+    user_id: str,
     tipo: str = "barras",
     db: AsyncSession = Depends(get_session)
 ) -> Dict[str, Any]:
-    """Genera un gráfico de métricas del alumno.
+    """Genera un gráfico de métricas del usuario.
     
     Args:
-        alumno_id: ID del alumno
+        user_id: ID del usuario (email)
         tipo: Tipo de gráfico ("barras" o "radar")
         db: Sesión de base de datos asíncrona
         
@@ -35,17 +36,39 @@ async def generar_grafico_metricas(
             - tipo: Tipo de gráfico generado
     """
     try:
-        metricas = await obtener_metricas_por_materia(alumno_id, db)
+        # Obtener datos del usuario desde la tabla resultado
+        query = text("""
+        SELECT 
+            cur.nombre as materia,
+            COUNT(*) as total_intentos,
+            SUM(CASE WHEN r.es_correcta THEN 1 ELSE 0 END) as aciertos,
+            SUM(CASE WHEN NOT r.es_correcta THEN 1 ELSE 0 END) as errores
+        FROM resultado r
+        JOIN capitulo c ON r.capitulo_id = c.id
+        JOIN curso cur ON c.curso_id = cur.id
+        WHERE r.estudiante_id = :user_id
+        GROUP BY cur.nombre
+        """)
+        
+        result = await db.execute(query, {"user_id": user_id})
+        metricas = result.fetchall()
         
         if not metricas:
-            raise HTTPException(
-                status_code=404,
-                detail="No se encontraron métricas para el alumno"
-            )
+            return {
+                "url": None,
+                "tipo": tipo,
+                "mensaje": "No hay datos de rendimiento disponibles para este usuario"
+            }
             
         # Preparar datos
-        cursos = [m["curso"] for m in metricas]
-        porcentajes = [m["porcentaje_correcto"] for m in metricas]
+        cursos = [row.materia for row in metricas]
+        porcentajes = []
+        
+        for row in metricas:
+            total = row.total_intentos
+            aciertos = row.aciertos
+            porcentaje = (aciertos / total * 100) if total > 0 else 0
+            porcentajes.append(porcentaje)
         
         # Crear figura
         plt.figure(figsize=(10, 6))
@@ -79,11 +102,11 @@ async def generar_grafico_metricas(
                 detail="Tipo de gráfico no válido"
             )
             
-        plt.title(f"Rendimiento por materia - Alumno {alumno_id}")
+        plt.title(f"Rendimiento por materia - Usuario {user_id}")
         
         # Guardar gráfico
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"alumno_{alumno_id}_{tipo}_{timestamp}.png"
+        filename = f"usuario_{user_id.replace('@', '_at_')}_{tipo}_{timestamp}.png"
         filepath = os.path.join("static/charts", filename)
         plt.savefig(filepath)
         plt.close()

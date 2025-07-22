@@ -13,16 +13,17 @@ from app.models.capitulo import Capitulo
 from app.models.curso import Curso
 from app.resources.metricas import obtener_metricas_por_materia
 from app.core.mcp import mcp
+from sqlalchemy import text
 
 @mcp.tool()
 async def recomendar_plan_estudio(
-    alumno_id: int,
+    user_id: str,
     db: AsyncSession = Depends(get_session)
 ) -> Dict[str, Any]:
     """Genera un plan de estudio personalizado basado en el rendimiento.
     
     Args:
-        alumno_id: ID del alumno
+        user_id: ID del usuario (email)
         db: Sesión de base de datos asíncrona
         
     Returns:
@@ -31,26 +32,44 @@ async def recomendar_plan_estudio(
             - recomendaciones: Dict con recomendaciones por materia
     """
     try:
-        # Obtener métricas actuales
-        metricas = await obtener_metricas_por_materia(alumno_id, db)
+        # Obtener datos del usuario desde la tabla resultado
+        query = text("""
+        SELECT 
+            cur.nombre as materia,
+            COUNT(*) as total_intentos,
+            SUM(CASE WHEN r.es_correcta THEN 1 ELSE 0 END) as aciertos,
+            SUM(CASE WHEN NOT r.es_correcta THEN 1 ELSE 0 END) as errores
+        FROM resultado r
+        JOIN capitulo c ON r.capitulo_id = c.id
+        JOIN curso cur ON c.curso_id = cur.id
+        WHERE r.estudiante_id = :user_id
+        GROUP BY cur.nombre
+        ORDER BY (SUM(CASE WHEN r.es_correcta THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) ASC
+        """)
+        
+        result = await db.execute(query, {"user_id": user_id})
+        metricas = result.fetchall()
         
         if not metricas:
-            raise HTTPException(
-                status_code=404,
-                detail="No se encontraron métricas para el alumno"
-            )
+            return {
+                "prioridades": [],
+                "recomendaciones": {},
+                "mensaje": "No hay datos de rendimiento disponibles para este usuario"
+            }
             
-        # Ordenar materias por rendimiento (menor a mayor)
-        materias_ordenadas = sorted(
-            metricas,
-            key=lambda x: (x.aciertos / (x.aciertos + x.errores) * 100) if (x.aciertos + x.errores) > 0 else 0
-        )
-        
         # Generar recomendaciones
         recomendaciones = {}
-        for materia in materias_ordenadas:
-            total = materia.aciertos + materia.errores
-            porcentaje_correcto = (materia.aciertos / total * 100) if total > 0 else 0
+        prioridades = []
+        
+        for row in metricas:
+            materia = row.materia
+            total = row.total_intentos
+            aciertos = row.aciertos
+            errores = row.errores
+            
+            porcentaje_correcto = (aciertos / total * 100) if total > 0 else 0
+            prioridades.append(materia)
+            
             if porcentaje_correcto < 60:
                 nivel = "alto"
                 msg = "Necesita refuerzo urgente"
@@ -60,15 +79,20 @@ async def recomendar_plan_estudio(
             else:
                 nivel = "bajo"
                 msg = "Buen rendimiento"
-            recomendaciones[materia.materia] = {
+                
+            recomendaciones[materia] = {
                 "nivel_prioridad": nivel,
                 "mensaje": msg,
-                "porcentaje_actual": porcentaje_correcto
+                "porcentaje_actual": round(porcentaje_correcto, 2),
+                "total_intentos": total,
+                "aciertos": aciertos,
+                "errores": errores
             }
             
         return {
-            "prioridades": [m.materia for m in materias_ordenadas],
-            "recomendaciones": recomendaciones
+            "prioridades": prioridades,
+            "recomendaciones": recomendaciones,
+            "usuario": user_id
         }
         
     except Exception as e:

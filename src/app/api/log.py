@@ -61,9 +61,40 @@ async def log_result(request: Request, data: LogResultRequest):
             )
             await session.commit()
         
-        # Si la respuesta es correcta, sumar 1 XP al leaderboard semanal
+        # Si la respuesta es correcta, sumar 1 XP al leaderboard semanal y actualizar user_progress
         if data.is_correct:
             add_xp_leaderboard("global_weekly", user_id_hash, 1)
+            
+            # Actualizar user_progress en PostgreSQL
+            try:
+                from app.models.adaptive import UserProgress
+                from sqlalchemy import select
+                from datetime import datetime
+                
+                # Buscar progreso existente o crear uno nuevo
+                progress_result = await session.execute(
+                    select(UserProgress).filter(
+                        UserProgress.user_id_hash == user_id_hash,
+                        UserProgress.course == "general"
+                    )
+                )
+                user_progress = progress_result.scalars().first()
+                
+                if user_progress:
+                    user_progress.total_xp += 1
+                    user_progress.last_active = datetime.utcnow()
+                else:
+                    new_progress = UserProgress(
+                        user_id_hash=user_id_hash,
+                        course="general",
+                        total_xp=1,
+                        last_active=datetime.utcnow()
+                    )
+                    session.add(new_progress)
+                
+                await session.commit()
+            except Exception as e:
+                print(f"[WARNING] Error actualizando user_progress: {e}")
             
             # Integrar repetición espaciada
             try:

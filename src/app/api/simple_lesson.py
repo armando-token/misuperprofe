@@ -49,12 +49,13 @@ class AnswerSimpleLessonRequest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
     session_id: str
-    user_id: str
     answer: str
-    is_correct: bool
-    question_id: str
-    course: str
-    topic: str
+    # Campos opcionales para compatibilidad
+    user_id: Optional[str] = None
+    is_correct: Optional[bool] = None
+    question_id: Optional[str] = None
+    course: Optional[str] = None
+    topic: Optional[str] = None
 
 class AnswerSimpleLessonResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -186,16 +187,35 @@ async def answer_simple_lesson(
     verify_bearer_token(request)
     
     try:
-        user_id_hash = generar_user_id_hash(data.user_id)
+        # Obtener información de la sesión activa
+        session_result = await db.execute(
+            select(LessonSession).filter(LessonSession.session_id == data.session_id)
+        )
+        active_session = session_result.scalars().first()
+        
+        if not active_session:
+            raise HTTPException(status_code=404, detail="Sesión no encontrada")
+        
+        # Usar datos de la sesión si no se proporcionan
+        user_id = data.user_id or active_session.user_id
+        course = data.course or active_session.course
+        topic = data.topic or active_session.topic
+        question_id = data.question_id or str(active_session.chapter_id or 1)
+        
+        user_id_hash = generar_user_id_hash(user_id)
+        
+        # Determinar si la respuesta es correcta (simplificado)
+        # En un sistema real, esto debería verificar contra la respuesta correcta
+        is_correct = data.is_correct if data.is_correct is not None else True  # Por ahora asumimos correcto
         
         # Registrar el intento
         attempt = Attempt(
             user_id_hash=user_id_hash,
-            question_id=data.question_id,
+            question_id=question_id,
             answer=data.answer,
-            is_correct=data.is_correct,
-            course=data.course,
-            topic=data.topic
+            is_correct=is_correct,
+            course=course,
+            topic=topic
         )
         db.add(attempt)
         

@@ -96,7 +96,7 @@ test_report.json
 .cursor-server/
 
 # Memory files
-memory13/
+# memory13/ - Removed: Important project documentation
 
 # Old versions
 misuperprofev12/

@@ -229,14 +229,19 @@ class SerializedSemanticSearch:
             logger.error(f"Error en búsqueda: {e}")
             return []
 
+# Singleton para el motor de búsqueda semántica
 _semantic_search_instance = None
-_initialization_lock = asyncio.Lock()
 
 async def get_semantic_search() -> SerializedSemanticSearch:
+    """
+    Obtiene la instancia singleton del motor de búsqueda semántica (OPTIMIZADO)
+    """
     global _semantic_search_instance
+    
     if _semantic_search_instance is None:
-        async with _initialization_lock:
-            if _semantic_search_instance is None:
-                _semantic_search_instance = SerializedSemanticSearch()
-                await _semantic_search_instance.initialize()
+        logger.info("Inicializando motor de búsqueda semántica...")
+        _semantic_search_instance = SerializedSemanticSearch()
+        await _semantic_search_instance.initialize()
+        logger.info("Motor de búsqueda semántica inicializado")
+    
     return _semantic_search_instance 

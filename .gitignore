@@ -1,24 +1,4 @@
-# Archivos de entorno
-.env
-.env.local
-.env.production
-
-# Logs
-logs/
-*.log
-
-# Backups (excluir del repositorio pero mantener estructura)
-backups/*.sql
-backups/*.rdb
-redis_backups/
-
-# Archivos temporales
-*.tmp
-*.temp
-*.swp
-*.swo
-
-# Archivos de Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -39,15 +19,25 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# IDEs
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Sistema operativo
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -56,14 +46,66 @@ wheels/
 ehthumbs.db
 Thumbs.db
 
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+*.cache
+
 # Docker
-.dockerignore
+.docker/
 
-# Archivos de debug
-debug_*.py
-debug_*.sh
-recreate_test_data.sh
+# Node modules
+node_modules/
+.nvm/
 
-# Archivos de configuración local
-config.local.py
-settings.local.py 
+# Python environment
+.pyenv/
+
+# Local development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test files
+test_*.py
+*_test.py
+test_report.json
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# System files
+.bash_history
+.bash_logout
+.config/
+.local/
+.ssh/
+.sudo_as_admin_successful
+.wget-hsts
+
+# Cursor server
+.cursor-server/
+
+# Memory files
+memory13/
+
+# Old versions
+misuperprofev12/
+
+# Embeddings cache (large files)
+embeddings_cache/
+*.npy
+*.bin
+*.pkl
+
+# Poetry
+poetry.lock 

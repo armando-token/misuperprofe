@@ -449,7 +449,7 @@ Probar exhaustivamente todas las funcionalidades del sistema ADAPTA-DECO para ga
 
 ### **✅ FUNCIONALIDADES OPERATIVAS:**
 - **Infraestructura**: 100% funcional
-- **Sistema Base**: 95% funcional (1 endpoint menor)
+- **Sistema Base**: 100% funcional
 - **DECO**: 100% funcional
 - **ITS**: 100% funcional
 - **Microlearning**: 100% funcional

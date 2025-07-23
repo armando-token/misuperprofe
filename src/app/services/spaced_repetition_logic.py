@@ -30,6 +30,9 @@ async def update_spaced_repetition_for_item(
     item_id: int,
     is_correct_response: bool
 ):
+    # Asegurar que item_id esté en rango válido para int32
+    if abs(item_id) > 2147483647:
+        item_id = abs(item_id) % 2147483647
     result = await db.execute(select(SpacedRepetition).filter(
         SpacedRepetition.user_id_hash == user_id_hash,
         SpacedRepetition.item_id == item_id

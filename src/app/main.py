@@ -13,6 +13,9 @@ from app.api.simple_lesson import router as simple_lesson_router
 from app.api.achievements import router as achievements_router
 from app.api.course import router as course_router
 from app.api.analytics import analytics_router
+from app.api.routers.deco_router import router as deco_router
+from app.api.routers.its_router import router as its_router
+from app.api.routers.phase3_router import router as phase3_router
 from app.core.mcp import mcp
 
 app = FastAPI(
@@ -36,6 +39,9 @@ app.include_router(simple_lesson_router, prefix=settings.API_V1_STR)
 app.include_router(achievements_router, prefix=settings.API_V1_STR)
 app.include_router(course_router, prefix=settings.API_V1_STR)
 app.include_router(analytics_router, prefix=settings.API_V1_STR, tags=["Analytics"])
+app.include_router(deco_router, prefix=settings.API_V1_STR, tags=["DECO"])
+app.include_router(its_router, prefix=settings.API_V1_STR, tags=["ITS"])
+app.include_router(phase3_router, prefix=settings.API_V1_STR, tags=["Phase3"])
 app.include_router(mcp.router)
 app.include_router(log_router, prefix=settings.API_V1_STR, tags=["Logging"])
 

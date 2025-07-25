@@ -36,18 +36,16 @@ async def generar_grafico_metricas(
             - tipo: Tipo de gráfico generado
     """
     try:
-        # Obtener datos del usuario desde la tabla resultado
+        # Obtener datos del usuario desde la tabla attempts
         query = text("""
         SELECT 
-            cur.nombre as materia,
+            course as materia,
             COUNT(*) as total_intentos,
-            SUM(CASE WHEN r.es_correcta THEN 1 ELSE 0 END) as aciertos,
-            SUM(CASE WHEN NOT r.es_correcta THEN 1 ELSE 0 END) as errores
-        FROM resultado r
-        JOIN capitulo c ON r.capitulo_id = c.id
-        JOIN curso cur ON c.curso_id = cur.id
-        WHERE r.estudiante_id = :user_id
-        GROUP BY cur.nombre
+            SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as aciertos,
+            SUM(CASE WHEN NOT is_correct THEN 1 ELSE 0 END) as errores
+        FROM attempts 
+        WHERE user_id_hash = :user_id
+        GROUP BY course
         """)
         
         result = await db.execute(query, {"user_id": user_id})
@@ -107,7 +105,7 @@ async def generar_grafico_metricas(
         # Guardar gráfico
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"usuario_{user_id.replace('@', '_at_')}_{tipo}_{timestamp}.png"
-        filepath = os.path.join("static/charts", filename)
+        filepath = os.path.join("/home/ubuntu/static/charts", filename)
         plt.savefig(filepath)
         plt.close()
         

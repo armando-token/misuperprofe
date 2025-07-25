@@ -3,11 +3,14 @@ Endpoints REST para el sistema DECO (DEstrezas COgnitivas)
 Implementa API para preguntas tipo UNMSM 2025
 """
 
+import logging
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+
+logger = logging.getLogger(__name__)
 
 from app.db.session import get_session as get_db
 from app.services.deco.deco_engine import deco_engine
@@ -46,16 +49,60 @@ async def get_deco_question(
     Implementa la filosofía del examen UNMSM 2025
     """
     try:
-        # Crear sesión DECO completa
-        session_data = deco_engine.create_deco_session(
-            user_id=request.user_id,
-            area=request.area,
-            topic=request.topic,
-            difficulty=request.difficulty
-        )
+        # Intentar obtener contenido del capítulo si se proporciona chapter_id
+        chapter_content = None
+        if hasattr(request, 'chapter_id') and request.chapter_id:
+            try:
+                # Buscar el capítulo en la base de datos
+                from app.models.curso import Curso
+                from app.models.capitulo import Capitulo
+                from sqlalchemy import select, func
+                
+                # Buscar curso por nombre
+                result = await db.execute(
+                    select(Curso).where(func.lower(Curso.nombre).ilike(f"%{request.area.lower()}%"))
+                )
+                curso = result.scalars().first()
+                
+                if curso:
+                    # Buscar capítulo por orden
+                    result = await db.execute(
+                        select(Capitulo).where(
+                            Capitulo.curso_id == curso.id,
+                            Capitulo.orden == request.chapter_id
+                        )
+                    )
+                    capitulo = result.scalars().first()
+                    
+                    if capitulo and (capitulo.contenido_md or capitulo.resumen):
+                        chapter_content = capitulo.contenido_md or capitulo.resumen
+                        logger.info(f"Contenido encontrado para capítulo {request.chapter_id} del curso {request.area}")
+            except Exception as e:
+                logger.warning(f"No se pudo obtener contenido del capítulo: {e}")
         
-        # Guardar sesión en base de datos (opcional para tracking)
-        # TODO: Implementar tabla de sesiones DECO
+        # Generar pregunta DECO
+        if chapter_content:
+            # Usar contenido del capítulo
+            session_data = deco_engine.create_deco_question_from_content(
+                content=chapter_content,
+                topic=request.topic,
+                cognitive_skill=request.cognitive_skill
+            )
+            # Agregar datos de sesión
+            session_data.update({
+                "user_id": request.user_id,
+                "area": request.area,
+                "difficulty": request.difficulty,
+                "session_id": f"deco_{request.user_id}_{datetime.utcnow().timestamp()}"
+            })
+        else:
+            # Usar contexto generado (método original)
+            session_data = deco_engine.create_deco_session(
+                user_id=request.user_id,
+                area=request.area,
+                topic=request.topic,
+                difficulty=request.difficulty
+            )
         
         return DECOQuestionResponse(**session_data)
         

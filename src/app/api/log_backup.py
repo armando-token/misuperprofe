@@ -255,11 +255,11 @@ async def recomendar_plan_estudio(request: Request, user_id: str = Query(...)):
         print("[ERROR][recomendar_plan_estudio]", traceback.format_exc())
         raise HTTPException(status_code=500, detail="Error interno en el backend.")
 
-# @log_router.get("/get_question")
+@log_router.get("/get_question")
 async def get_question(request: Request, course: str = Query(None), topic: str = Query(None)):
     """
-    Endpoint GET híbrido para preguntas basadas en contenido del capítulo
-    Combina extracción de contenido con filosofía DECO
+    [DEPRECADO] Endpoint básico para preguntas simples.
+    USAR /deco/question EN SU LUGAR para preguntas tipo UNMSM 2025.
     """
     auth = request.headers.get("Authorization")
     if not auth or auth != f"Bearer {API_KEY}":

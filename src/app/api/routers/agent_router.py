@@ -20,11 +20,85 @@ async def agent_chat_placeholder():
     logger.warning("El endpoint /agent/chat ha sido deshabilitado temporalmente para depuración.")
     raise HTTPException(status_code=503, detail="Endpoint deshabilitado temporalmente.")
 
-# Endpoints de negocio deshabilitados
+# Endpoints de negocio
 @agent_router.post("/courses")
-async def list_courses_placeholder():
-    logger.warning("El endpoint /courses ha sido deshabilitado temporalmente para depuración.")
-    raise HTTPException(status_code=503, detail="Endpoint deshabilitado temporalmente.")
+async def list_courses():
+    """
+    Endpoint para obtener la lista de cursos disponibles
+    """
+    logger.info("🔍 [AGENT_COURSES] Petición recibida en /courses (POST)")
+    
+    try:
+        courses = [
+            {
+                "id": "biologia",
+                "name": "Biología",
+                "description": "Estudio de los seres vivos y sus procesos",
+                "chapters": 5
+            },
+            {
+                "id": "historia",
+                "name": "Historia",
+                "description": "Estudio del pasado humano y sus eventos",
+                "chapters": 4
+            },
+            {
+                "id": "lenguaje",
+                "name": "Lenguaje",
+                "description": "Comunicación y expresión escrita",
+                "chapters": 3
+            },
+            {
+                "id": "geografia",
+                "name": "Geografía",
+                "description": "Estudio de la Tierra y sus características",
+                "chapters": 4
+            },
+            {
+                "id": "filosofia",
+                "name": "Filosofía",
+                "description": "Reflexión sobre la existencia y el conocimiento",
+                "chapters": 3
+            },
+            {
+                "id": "literatura",
+                "name": "Literatura",
+                "description": "Arte de la expresión escrita",
+                "chapters": 4
+            },
+            {
+                "id": "economia",
+                "name": "Economía",
+                "description": "Estudio de la producción y distribución de recursos",
+                "chapters": 3
+            },
+            {
+                "id": "civica",
+                "name": "Cívica",
+                "description": "Derechos y deberes ciudadanos",
+                "chapters": 3
+            },
+            {
+                "id": "psicologia",
+                "name": "Psicología",
+                "description": "Estudio del comportamiento humano",
+                "chapters": 4
+            },
+            {
+                "id": "cultura_general",
+                "name": "Cultura General",
+                "description": "Conocimientos generales y actualidad",
+                "chapters": 5
+            }
+        ]
+        
+        response = {"courses": courses, "total": len(courses)}
+        logger.info("✅ [AGENT_COURSES] Respuesta exitosa: %s", response)
+        return response
+        
+    except Exception as e:
+        logger.error("❌ [AGENT_COURSES] Error en /courses: %s", str(e))
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 @agent_router.post("/ask")
 async def ask_question(payload: dict):

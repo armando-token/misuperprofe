@@ -1,0 +1,305 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MiSuperProfe API - Compatible",
+    "description": "API para tutor DECO UNMSM 2025 usando endpoints reales",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://app.misuperprofe.com",
+      "description": "Servidor de producción"
+    }
+  ],
+  "paths": {
+    "/api/v1/courses": {
+      "get": {
+        "summary": "Listar todos los cursos disponibles",
+        "operationId": "listarCursos",
+        "tags": ["curso"],
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de cursos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursesResponse"
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      },
+      "post": {
+        "summary": "Listar cursos (POST)",
+        "operationId": "listarCursosPost",
+        "tags": ["curso"],
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de cursos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursesResponse"
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/api/v1/dynamic": {
+      "post": {
+        "summary": "Endpoint dinámico para todas las operaciones",
+        "description": "Endpoint único que se adapta dinámicamente a cualquier solicitud",
+        "operationId": "dynamic_operation",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DynamicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta exitosa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DynamicResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/deco/question": {
+      "post": {
+        "summary": "Generar pregunta DECO",
+        "operationId": "getDecoQuestion",
+        "tags": ["deco"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecoQuestionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pregunta DECO generada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecoQuestionResponse"
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    },
+    "/api/v1/deco/answer": {
+      "post": {
+        "summary": "Registrar respuesta DECO",
+        "operationId": "submitDecoAnswer",
+        "tags": ["deco"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecoAnswerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta registrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecoAnswerResponse"
+                }
+              }
+            }
+          },
+          "403": {"description": "Token requerido"}
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "CoursesResponse": {
+        "type": "object",
+        "properties": {
+          "courses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {"type": "string"},
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "chapters": {"type": "integer"}
+              },
+              "required": ["id", "name", "description", "chapters"]
+            }
+          },
+          "total": {"type": "integer"}
+        },
+        "required": ["courses", "total"]
+      },
+      "DynamicRequest": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Tipo de acción solicitada",
+            "enum": ["get_courses", "get_question", "get_progress", "get_stats", "practice", "explain", "help"]
+          },
+          "course": {
+            "type": "string",
+            "description": "Nombre del curso (opcional)",
+            "example": "historia"
+          },
+          "chapter": {
+            "type": "string",
+            "description": "Número de capítulo (opcional)",
+            "example": "1"
+          },
+          "question": {
+            "type": "string",
+            "description": "Pregunta específica del usuario (opcional)",
+            "example": "¿Cuáles son las causas de la independencia del Perú?"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "ID del usuario (opcional)",
+            "example": "user123"
+          }
+        },
+        "required": ["action"]
+      },
+      "DynamicResponse": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "data": {
+            "type": "object",
+            "description": "Datos de respuesta según la acción"
+          },
+          "message": {"type": "string"}
+        }
+      },
+      "DecoQuestionRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": {"type": "string"},
+          "area": {"type": "string"},
+          "topic": {"type": "string"},
+          "difficulty": {"type": "string"},
+          "cognitive_skill": {"type": "string"},
+          "chapter_id": {"type": "integer"}
+        },
+        "required": ["user_id", "area"]
+      },
+      "DecoQuestionResponse": {
+        "type": "object",
+        "properties": {
+          "question_id": {"type": "string"},
+          "question": {"type": "string"},
+          "options": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "correct_answer": {"type": "string"},
+          "explanation": {"type": "string"},
+          "cognitive_skill": {"type": "string"},
+          "difficulty": {"type": "string"}
+        }
+      },
+      "DecoAnswerRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": {"type": "string"},
+          "question_id": {"type": "string"},
+          "selected_answer": {"type": "string"},
+          "area": {"type": "string"},
+          "topic": {"type": "string"}
+        },
+        "required": ["user_id", "question_id", "selected_answer", "area"]
+      },
+      "DecoAnswerResponse": {
+        "type": "object",
+        "properties": {
+          "is_correct": {"type": "boolean"},
+          "explanation": {"type": "string"},
+          "points_earned": {"type": "integer"},
+          "next_recommendation": {"type": "string"}
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {"type": "string"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+} 

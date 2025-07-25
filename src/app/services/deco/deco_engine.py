@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 from app.config import settings
 from app.services.openai_service import get_openai_client
+from app.services.deco.content_extractor import ContentExtractor
 
 
 class DECOEngine:
@@ -25,6 +26,7 @@ class DECOEngine:
     
     def __init__(self):
         self.openai_client = get_openai_client()
+        self.content_extractor = ContentExtractor()
         self.cognitive_skills = [
             "análisis", "inferencia", "extrapolación", "aplicación", 
             "síntesis", "evaluación", "interpretación", "comparación"
@@ -72,6 +74,37 @@ class DECOEngine:
         
         # Cache para resultados DECO
         self._deco_cache: Dict[str, Dict] = {}
+    
+    def create_deco_question_from_content(self, content: str, topic: str, 
+                                        cognitive_skill: str = None) -> Dict:
+        """
+        Crea una pregunta DECO basada en contenido real del capítulo
+        
+        Args:
+            content: Contenido del capítulo
+            topic: Tema específico
+            cognitive_skill: Habilidad cognitiva específica
+            
+        Returns:
+            Dict: Pregunta DECO basada en contenido
+        """
+        try:
+            # Validar que el contenido sea suficiente
+            if not self.content_extractor.validate_content(content):
+                logger.warning(f"Contenido insuficiente para generar pregunta. Usando contexto generado.")
+                return self.create_deco_question(self.generate_context(topic, "general"), topic, cognitive_skill)
+            
+            # Extraer pregunta del contenido
+            question_data = self.content_extractor.extract_question_from_content(
+                content, topic, cognitive_skill
+            )
+            
+            return question_data
+            
+        except Exception as e:
+            logger.error(f"Error al generar pregunta desde contenido: {e}")
+            # Fallback a contexto generado
+            return self.create_deco_question(self.generate_context(topic, "general"), topic, cognitive_skill)
     
     def generate_context(self, topic: str, area: str, difficulty: int = 2) -> str:
         """

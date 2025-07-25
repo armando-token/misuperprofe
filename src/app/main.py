@@ -1,4 +1,5 @@
 import uvicorn
+import traceback
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -16,11 +17,15 @@ from app.api.analytics import analytics_router
 from app.api.routers.deco_router import router as deco_router
 from app.api.routers.its_router import router as its_router
 from app.api.routers.phase3_router import router as phase3_router
+from app.api.routers.dynamic_router import dynamic_router
 from app.core.mcp import mcp
 
 app = FastAPI(
     title=settings.PROJECT_NAME + " - Agent Service",
-    openapi_url=f"{settings.API_V1_STR}/agent/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/agent/openapi.json",
+    servers=[
+        {"url": "https://app.misuperprofe.com/api/v1", "description": "Production server"}
+    ]
 )
 
 if settings.BACKEND_CORS_ORIGINS:
@@ -42,6 +47,7 @@ app.include_router(analytics_router, prefix=settings.API_V1_STR, tags=["Analytic
 app.include_router(deco_router, prefix=settings.API_V1_STR, tags=["DECO"])
 app.include_router(its_router, prefix=settings.API_V1_STR, tags=["ITS"])
 app.include_router(phase3_router, prefix=settings.API_V1_STR, tags=["Phase3"])
+app.include_router(dynamic_router, tags=["Dynamic"])
 app.include_router(mcp.router)
 app.include_router(log_router, prefix=settings.API_V1_STR, tags=["Logging"])
 
@@ -59,73 +65,91 @@ def health_check():
     return {"status": "ok", "service": "Agent Service"}
 
 @app.get(f"{settings.API_V1_STR}/courses")
-def get_courses():
+def get_courses(request: Request):
     """
     Endpoint para obtener la lista de cursos disponibles
     """
-    courses = [
-        {
-            "id": "biologia",
-            "name": "Biología",
-            "description": "Estudio de los seres vivos y sus procesos",
-            "chapters": 5
-        },
-        {
-            "id": "historia",
-            "name": "Historia",
-            "description": "Estudio del pasado humano y sus eventos",
-            "chapters": 4
-        },
-        {
-            "id": "lenguaje",
-            "name": "Lenguaje",
-            "description": "Comunicación y expresión escrita",
-            "chapters": 3
-        },
-        {
-            "id": "geografia",
-            "name": "Geografía",
-            "description": "Estudio de la Tierra y sus características",
-            "chapters": 4
-        },
-        {
-            "id": "filosofia",
-            "name": "Filosofía",
-            "description": "Reflexión sobre la existencia y el conocimiento",
-            "chapters": 3
-        },
-        {
-            "id": "literatura",
-            "name": "Literatura",
-            "description": "Arte de la expresión escrita",
-            "chapters": 4
-        },
-        {
-            "id": "economia",
-            "name": "Economía",
-            "description": "Estudio de la producción y distribución de recursos",
-            "chapters": 3
-        },
-        {
-            "id": "civica",
-            "name": "Cívica",
-            "description": "Derechos y deberes ciudadanos",
-            "chapters": 3
-        },
-        {
-            "id": "psicologia",
-            "name": "Psicología",
-            "description": "Estudio del comportamiento humano",
-            "chapters": 4
-        },
-        {
-            "id": "cultura_general",
-            "name": "Cultura General",
-            "description": "Conocimientos generales y actualidad",
-            "chapters": 5
-        }
-    ]
-    return {"courses": courses, "total": len(courses)}
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Log detallado de la petición
+    logger.info("🔍 [COURSES] Petición recibida en /courses")
+    logger.info("🔍 [COURSES] Headers recibidos: %s", dict(request.headers))
+    logger.info("🔍 [COURSES] Método: %s", request.method)
+    logger.info("🔍 [COURSES] URL: %s", request.url)
+    
+    try:
+        courses = [
+            {
+                "id": "biologia",
+                "name": "Biología",
+                "description": "Estudio de los seres vivos y sus procesos",
+                "chapters": 5
+            },
+            {
+                "id": "historia",
+                "name": "Historia",
+                "description": "Estudio del pasado humano y sus eventos",
+                "chapters": 4
+            },
+            {
+                "id": "lenguaje",
+                "name": "Lenguaje",
+                "description": "Comunicación y expresión escrita",
+                "chapters": 3
+            },
+            {
+                "id": "geografia",
+                "name": "Geografía",
+                "description": "Estudio de la Tierra y sus características",
+                "chapters": 4
+            },
+            {
+                "id": "filosofia",
+                "name": "Filosofía",
+                "description": "Reflexión sobre la existencia y el conocimiento",
+                "chapters": 3
+            },
+            {
+                "id": "literatura",
+                "name": "Literatura",
+                "description": "Arte de la expresión escrita",
+                "chapters": 4
+            },
+            {
+                "id": "economia",
+                "name": "Economía",
+                "description": "Estudio de la producción y distribución de recursos",
+                "chapters": 3
+            },
+            {
+                "id": "civica",
+                "name": "Cívica",
+                "description": "Derechos y deberes ciudadanos",
+                "chapters": 3
+            },
+            {
+                "id": "psicologia",
+                "name": "Psicología",
+                "description": "Estudio del comportamiento humano",
+                "chapters": 4
+            },
+            {
+                "id": "cultura_general",
+                "name": "Cultura General",
+                "description": "Conocimientos generales y actualidad",
+                "chapters": 5
+            }
+        ]
+        
+        response = {"courses": courses, "total": len(courses)}
+        logger.info("✅ [COURSES] Respuesta exitosa: %s", response)
+        return response
+        
+    except Exception as e:
+        logger.error("❌ [COURSES] Error en /courses: %s", str(e))
+        logger.error("❌ [COURSES] Traceback: %s", traceback.format_exc())
+        raise
 
 @app.get("/copilotkit")
 @app.get("/copilotkit/")

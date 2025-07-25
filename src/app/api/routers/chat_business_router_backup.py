@@ -15,14 +15,14 @@ from app.schemas.pregunta import QuestionRequest, GeneratedQuestion
 chat_business_router = APIRouter()
 logger = logging.getLogger(__name__)
 
-# @chat_business_router.post("/get_question", response_model=GeneratedQuestion)
+@chat_business_router.post("/get_question", response_model=GeneratedQuestion)
 async def get_question_endpoint(
     payload: QuestionRequest = Body(...),
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Endpoint híbrido para preguntas basadas en contenido del capítulo
-    Combina extracción de contenido con filosofía DECO
+    [DEPRECADO] Endpoint básico para preguntas simples. 
+    USAR /deco/question EN SU LUGAR para preguntas tipo UNMSM 2025.
     """
     logger.info(f"Recibida solicitud para generar pregunta con payload: {payload}")
     
@@ -67,40 +67,34 @@ async def get_question_endpoint(
         )
     logger.info(f"Capítulo encontrado: {capitulo.titulo} (Orden: {capitulo.orden})")
 
-    # 3. Generación de pregunta usando motor DECO híbrido
-    try:
-        from app.services.deco.deco_engine import DECOEngine
-        deco_engine = DECOEngine()
-        
-        # Usar contenido disponible (contenido_md o resumen)
-        content = capitulo.contenido_md or capitulo.resumen or ""
-        
-        # Generar pregunta basada en contenido del capítulo
-        question_data = deco_engine.create_deco_question_from_content(
-            content=content,
-            topic=capitulo.titulo,
-            cognitive_skill="aplicación"  # Default
-        )
-        
-        # Convertir formato DECO a formato GeneratedQuestion
-        return GeneratedQuestion(
-            pregunta=question_data["question"],
-            opciones=[
-                question_data["alternatives"]["A"],
-                question_data["alternatives"]["B"],
-                question_data["alternatives"]["C"],
-                question_data["alternatives"]["D"]
-            ],
-            respuesta_correcta=question_data["correct_answer"],
-            explicacion=question_data["explanation"]
-        )
-        
-    except Exception as e:
-        logger.exception(f"Error al generar pregunta con motor DECO para el capítulo {capitulo.id}: {e}")
-        # Fallback a pregunta básica
+    # 3. Generación de pregunta con IA si hay contenido
+    if not capitulo.contenido_md or len(capitulo.contenido_md.strip()) < 20:
+        logger.warning(f"Contenido del capítulo '{capitulo.titulo}' es demasiado corto o nulo. Se usará un fallback.")
+        # Fallback a una pregunta genérica si no hay suficiente contenido para evitar errores
         return GeneratedQuestion(
             pregunta=f"¿Cuál es un concepto fundamental de {curso.nombre}?",
             opciones=["Opción A", "Opción B", "Opción C", "Opción D"],
             respuesta_correcta="Revisar la teoría del capítulo.",
-            explicacion=f"Este es un fallback. El capítulo '{capitulo.titulo}' no pudo generar una pregunta específica."
-        ) 
+            explicacion=f"Este es un ejemplo. El capítulo '{capitulo.titulo}' no tiene suficiente contenido para generar una pregunta específica."
+        )
+
+    # try:
+    #     generation_chain = get_generation_chain()
+    #     logger.info(f"Invocando la cadena de generación para el capítulo: {capitulo.titulo}")
+    #     response = await generation_chain.ainvoke({"input": capitulo.contenido_md})
+    #     logger.info(f"Respuesta de la cadena de generación recibida: {response}")
+    #     return response
+    # except Exception as e:
+    #     logger.exception(f"Error al generar pregunta con IA para el capítulo {capitulo.id}: {e}")
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail="Ocurrió un error interno al intentar generar la pregunta."
+    #     )
+    
+    # Temporalmente retornamos una pregunta de ejemplo
+    return GeneratedQuestion(
+        pregunta=f"¿Cuál es un concepto fundamental de {curso.nombre}?",
+        opciones=["Opción A", "Opción B", "Opción C", "Opción D"],
+        respuesta_correcta="Revisar la teoría del capítulo.",
+        explicacion=f"Este es un ejemplo temporal. El capítulo '{capitulo.titulo}' no tiene generación de preguntas habilitada aún."
+    ) 

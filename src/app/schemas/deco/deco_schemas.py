@@ -17,6 +17,7 @@ class DECOQuestionRequest(BaseModel):
     topic: str = Field(..., description="Tema específico")
     difficulty: int = Field(default=2, ge=1, le=3, description="Nivel de dificultad (1-3)")
     cognitive_skill: Optional[str] = Field(None, description="Habilidad cognitiva específica")
+    chapter_id: Optional[int] = Field(None, description="ID del capítulo para extraer contenido")
 
 
 class DECOQuestionResponse(BaseModel):

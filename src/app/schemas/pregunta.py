@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 class QuestionRequest(BaseModel):
     """Request schema for generating questions."""
     course: str = Field(..., description="Course name")
-    chapter_id: str = Field(..., description="Chapter ID or order")
+    chapter_id: int = Field(..., description="Chapter ID or order")
 
 class GeneratedQuestion(BaseModel):
     """Response schema for generated questions."""

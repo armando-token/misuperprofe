@@ -52,6 +52,15 @@ graph TD
     end
 ```
 
+### Motor de Búsqueda Semántica (Local y Rápido)
+Una de las piezas centrales del proyecto es su capacidad para entender el significado de las preguntas y encontrar el contenido más relevante sin depender de servicios de IA externos para la búsqueda. Esto se logra a través de un motor de búsqueda semántica local que funciona de la siguiente manera:
+
+- **Base de Datos Relacional (PostgreSQL):** Los 2473 capítulos de conocimiento se almacenan de forma segura y persistente en una base de datos PostgreSQL. **Es importante aclarar que esta no es una base de datos vectorial.**
+- **Vectorización en Tiempo Real (`sentence-transformers`):** Al iniciar la aplicación, el contenido de cada capítulo se convierte en un vector numérico (embedding) que representa su significado semántico.
+- **Índice en Memoria (`faiss`):** Todos estos vectores se cargan en un índice FAISS (una librería de Facebook AI) que reside en la memoria RAM. FAISS está altamente optimizado para encontrar los vectores más similares a la velocidad de la luz.
+
+Cuando un usuario hace una pregunta, esta también se convierte en un vector y FAISS encuentra instantáneamente los capítulos más relevantes en el índice en memoria. Esta arquitectura nos proporciona una búsqueda semántica potente y extremadamente rápida, manteniendo los costos bajos y la soberanía de los datos.
+
 ---
 
 ## 🔧 **Guía de Despliegue Simplificada (Desde Cero)**

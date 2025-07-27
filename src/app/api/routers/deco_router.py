@@ -13,17 +13,23 @@ from sqlalchemy import select
 logger = logging.getLogger(__name__)
 
 from app.db.session import get_session as get_db
-from app.services.deco.deco_engine import deco_engine
+from app.services.deco.deco_engine import DECOEngine
 from app.schemas.deco.deco_schemas import (
-    DECOQuestionRequest, DECOQuestionResponse, DECOAnswerRequest, 
-    DECOAnswerResponse, DECOSessionRequest, DECOSessionResponse,
+    DECOQuestionRequest, DECOTheoryResponse, DECOAnswerRequest, 
+    DECOAnswerResponse,
     DECOProgressRequest, DECOProgressResponse, DECORecommendationRequest,
     DECORecommendationResponse
 )
+from app.models.curso import Curso
+from app.models.capitulo import Capitulo
+from sqlalchemy import select, func
 from app.services.spaced_repetition_logic import update_spaced_repetition_for_item
 from app.models.adaptive import Attempt, SpacedRepetition
 from app.models.base import Base
 from app.config import settings
+
+# Instancia del motor DECO
+deco_engine = DECOEngine()
 
 # Funciones mock para desarrollo
 async def award_points(user_id: str, action: str, points: int):
@@ -39,75 +45,70 @@ async def check_achievements(user_id: str, db):
 router = APIRouter(prefix="/deco", tags=["DECO - Destrezas Cognitivas"])
 
 
-@router.post("/question", response_model=DECOQuestionResponse)
+@router.post("/question", response_model=DECOTheoryResponse)
 async def get_deco_question(
     request: DECOQuestionRequest,
     db: Session = Depends(get_db)
 ):
     """
-    Genera una pregunta DECO con cotexto y destrezas cognitivas
-    Implementa la filosofía del examen UNMSM 2025
+    Genera una pregunta DECO usando el motor HÍBRIDO.
+    Requiere un `chapter_id` para buscar contenido real en la base de datos.
+    Si el contenido no se encuentra, devuelve un error 404.
     """
-    try:
-        # Intentar obtener contenido del capítulo si se proporciona chapter_id
-        chapter_content = None
-        if hasattr(request, 'chapter_id') and request.chapter_id:
-            try:
-                # Buscar el capítulo en la base de datos
-                from app.models.curso import Curso
-                from app.models.capitulo import Capitulo
-                from sqlalchemy import select, func
-                
-                # Buscar curso por nombre
-                result = await db.execute(
-                    select(Curso).where(func.lower(Curso.nombre).ilike(f"%{request.area.lower()}%"))
-                )
-                curso = result.scalars().first()
-                
-                if curso:
-                    # Buscar capítulo por orden
-                    result = await db.execute(
-                        select(Capitulo).where(
-                            Capitulo.curso_id == curso.id,
-                            Capitulo.orden == request.chapter_id
-                        )
-                    )
-                    capitulo = result.scalars().first()
-                    
-                    if capitulo and (capitulo.contenido_md or capitulo.resumen):
-                        chapter_content = capitulo.contenido_md or capitulo.resumen
-                        logger.info(f"Contenido encontrado para capítulo {request.chapter_id} del curso {request.area}")
-            except Exception as e:
-                logger.warning(f"No se pudo obtener contenido del capítulo: {e}")
-        
-        # Generar pregunta DECO
-        if chapter_content:
-            # Usar contenido del capítulo
-            session_data = deco_engine.create_deco_question_from_content(
-                content=chapter_content,
-                topic=request.topic,
-                cognitive_skill=request.cognitive_skill
-            )
-            # Agregar datos de sesión
-            session_data.update({
-                "user_id": request.user_id,
-                "area": request.area,
-                "difficulty": request.difficulty,
-                "session_id": f"deco_{request.user_id}_{datetime.utcnow().timestamp()}"
-            })
-        else:
-            # Usar contexto generado (método original)
-            session_data = deco_engine.create_deco_session(
-                user_id=request.user_id,
-                area=request.area,
-                topic=request.topic,
-                difficulty=request.difficulty
-            )
-        
-        return DECOQuestionResponse(**session_data)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generando pregunta DECO: {str(e)}")
+    logger.info(f"Solicitud DECO Híbrida recibida: {request.dict()}")
+
+    if request.chapter_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="El campo 'chapter_id' es obligatorio para generar una pregunta."
+        )
+
+    # Buscar curso por el 'area' proporcionado
+    curso_result = await db.execute(
+        select(Curso).where(func.lower(Curso.nombre).ilike(f"%{request.area.lower()}%"))
+    )
+    curso = curso_result.scalars().first()
+
+    if not curso:
+        raise HTTPException(
+            status_code=404,
+            detail=f"El curso '{request.area}' no fue encontrado."
+        )
+
+    # Buscar capítulo por número de orden (chapter_id)
+    capitulo_result = await db.execute(
+        select(Capitulo).where(
+            Capitulo.curso_id == curso.id,
+            Capitulo.orden == request.chapter_id
+        )
+    )
+    capitulo = capitulo_result.scalars().first()
+
+    if not capitulo:
+        raise HTTPException(
+            status_code=404,
+            detail=f"El capítulo con orden {request.chapter_id} no fue encontrado en el curso '{request.area}'."
+        )
+    
+    logger.info(f"Capítulo encontrado: '{capitulo.titulo}'. Procediendo a extracción de contenido.")
+    content = capitulo.contenido_md or ""
+    
+    question_data = deco_engine.create_deco_question_from_content(
+        content=content,
+        topic=capitulo.titulo,
+        cognitive_skill=request.cognitive_skill,
+        chapter_id=capitulo.id,
+        course_name=curso.nombre
+    )
+
+    if not question_data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No se pudo preparar el contenido del capítulo '{capitulo.titulo}' para la generación de preguntas."
+        )
+
+    # La respuesta ya no es una pregunta, sino la instrucción para generarla
+    return question_data
 
 
 @router.post("/answer", response_model=DECOAnswerResponse)
@@ -119,54 +120,26 @@ async def submit_deco_answer(
     Evalúa respuesta a pregunta DECO y genera retroalimentación
     """
     try:
-        # TODO: Recuperar datos de la sesión desde base de datos
-        # Por ahora, simulamos los datos de la pregunta
-        session_data = {
-            "session_id": request.session_id,
-            "user_id": request.user_id,
-            "area": "matematicas",  # TODO: Recuperar de BD
-            "topic": "funciones",   # TODO: Recuperar de BD
-            "difficulty": 2,        # TODO: Recuperar de BD
-            "cognitive_skill": "aplicación",  # TODO: Recuperar de BD
-            "correct_answer": "A",  # TODO: Recuperar de BD
-            "context": "Contexto de la pregunta...",  # TODO: Recuperar de BD
-            "question": "Pregunta DECO...",  # TODO: Recuperar de BD
-            "alternatives": {"A": "Opción A", "B": "Opción B", "C": "Opción C", "D": "Opción D"},
-            "explanation": "Explicación de la respuesta correcta"  # TODO: Recuperar de BD
-        }
+        # La lógica de evaluación ahora reside en el Custom GPT.
+        # El backend solo registra el intento basado en lo que el GPT informa.
+        is_correct = request.is_correct
         
-        # Verificar si la respuesta es correcta
-        is_correct = request.answer.upper() == session_data["correct_answer"].upper()
-        
-        # Generar retroalimentación adaptativa
-        feedback = deco_engine.generate_feedback(
-            user_answer=request.answer,
-            correct_answer=session_data["correct_answer"],
-            question_data=session_data,
-            topic=session_data["topic"]
-        )
-        
-        # Calcular puntos ganados
-        points_earned = 10 if is_correct else 2  # Puntos por intento
-        
-        # Actualizar repetición espaciada si es correcta (temporalmente deshabilitada para DECO)
-        # TODO: Implementar tabla específica para repetición espaciada DECO
-        if is_correct:
-            # Temporalmente deshabilitado hasta resolver problema de foreign key
-            pass
-        
+        # La retroalimentación y los puntos se basan en si el GPT marcó la respuesta como correcta.
+        feedback = "Respuesta correcta registrada." if is_correct else "Respuesta incorrecta registrada."
+        points_earned = 10 if is_correct else 2
+
         # Otorgar puntos y verificar logros
         await award_points(request.user_id, "deco_answer", points_earned)
         await check_achievements(request.user_id, db)
         
-        # Guardar intento en base de datos
+        # Guardar intento en base de datos usando datos del request
         attempt = Attempt(
             user_id_hash=request.user_id,
-            question_id=request.session_id,
+            question_id=request.session_id, # Este es el título del capítulo
             answer=request.answer,
             is_correct=is_correct,
-            course=session_data["area"],
-            topic=session_data["topic"],
+            course=request.area, # Usar área del request
+            topic=request.topic,   # Usar tema del request
             created_at=datetime.utcnow()
         )
         db.add(attempt)
@@ -177,43 +150,20 @@ async def submit_deco_answer(
             user_id=request.user_id,
             is_correct=is_correct,
             user_answer=request.answer,
-            correct_answer=session_data["correct_answer"],
+            correct_answer="N/A", # El backend ya no conoce la respuesta correcta
             feedback=feedback,
-            micro_lesson=feedback,  # TODO: Separar micro-lección
-            cognitive_skill=session_data["cognitive_skill"],
-            topic=session_data["topic"],
-            area=session_data["area"],
-            difficulty=session_data["difficulty"],
+            micro_lesson=feedback,
+            cognitive_skill="N/A", # El backend ya no conoce la habilidad
+            topic=request.topic,
+            area=request.area,
+            difficulty=0, # El backend ya no conoce la dificultad
             points_earned=points_earned,
             created_at=datetime.utcnow()
         )
         
     except Exception as e:
+        logger.error(f"Error en /answer: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error evaluando respuesta DECO: {str(e)}")
-
-
-@router.post("/session", response_model=DECOSessionResponse)
-async def create_deco_session(
-    request: DECOSessionRequest,
-    db: Session = Depends(get_db)
-):
-    """
-    Crea una sesión completa de práctica DECO
-    """
-    try:
-        session_data = deco_engine.create_deco_session(
-            user_id=request.user_id,
-            area=request.area,
-            topic=request.topic,
-            difficulty=request.difficulty
-        )
-        
-        session_data["session_type"] = request.session_type
-        
-        return DECOSessionResponse(**session_data)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creando sesión DECO: {str(e)}")
 
 
 @router.get("/progress", response_model=DECOProgressResponse)
@@ -392,23 +342,5 @@ async def get_cognitive_skills():
             "evaluación": "Juzgar el valor o calidad de información",
             "interpretación": "Explicar el significado de información",
             "comparación": "Identificar similitudes y diferencias"
-        }
-    }
-
-
-@router.get("/areas")
-async def get_deco_areas():
-    """
-    Obtiene áreas académicas disponibles para DECO
-    """
-    return {
-        "areas": list(deco_engine.context_templates.keys()),
-        "descriptions": {
-            "matematicas": "Matemáticas y razonamiento lógico-matemático",
-            "fisica": "Física y ciencias físicas",
-            "quimica": "Química y procesos químicos",
-            "biologia": "Biología y ciencias de la vida",
-            "historia": "Historia y ciencias sociales",
-            "lenguaje": "Lenguaje y comunicación"
         }
     } 

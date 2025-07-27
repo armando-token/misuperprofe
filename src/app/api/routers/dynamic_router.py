@@ -8,12 +8,16 @@ from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, Optional
 import json
+from collections import defaultdict
+from sqlalchemy import select
 
 from app.db.session import get_session
 from app.models.curso import Curso
 from app.models.capitulo import Capitulo
-from app.models.adaptive import UserProgress, ProgressUnit
+from app.models.adaptive import UserProgress, ProgressUnit, Attempt
 from app.services.progress_report_service import ProgressReportService
+from app.schemas.dynamic_schemas import UserProgressResponse, UserProgressData, ProgressByCourse
+
 
 logger = logging.getLogger(__name__)
 dynamic_router = APIRouter()
@@ -66,7 +70,6 @@ async def _handle_get_courses(session: AsyncSession) -> Dict[str, Any]:
     """Maneja la acción get_courses"""
     logger.info("📚 [DYNAMIC] Obteniendo lista de cursos")
     
-    from sqlalchemy import select
     result = await session.execute(select(Curso))
     cursos = result.scalars().all()
     
@@ -159,43 +162,76 @@ async def _handle_get_question(payload: Dict[str, Any], session: AsyncSession) -
     return response
 
 async def _handle_get_progress(payload: Dict[str, Any], session: AsyncSession) -> Dict[str, Any]:
-    """Maneja la acción get_progress"""
-    logger.info(f"📊 [DYNAMIC] Obteniendo progreso para: {payload}")
+    """
+    Maneja la acción get_progress.
+    Calcula el progreso total y un desglose detallado por curso directamente 
+    de la tabla de intentos (attempts) para asegurar datos en tiempo real.
+    """
+    logger.info(f"📊 [DYNAMIC] Obteniendo progreso detallado para: {payload}")
     
-    user_id = payload.get("user_id", "default_user")
-    
-    # Buscar progreso del usuario
-    from sqlalchemy import select
-    result = await session.execute(
-        select(UserProgress).where(UserProgress.user_id_hash == user_id)
-    )
-    progress = result.scalars().first()
-    
-    if not progress:
-        progress_data = {
-            "user_id": user_id,
-            "total_xp": 0,
-            "current_streak": 0,
-            "total_questions_answered": 0,
-            "correct_answers": 0
-        }
+    user_id = payload.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Campo 'user_id' es requerido para get_progress")
+
+    # Obtener todos los intentos para el usuario
+    stmt = select(Attempt).where(Attempt.user_id_hash == user_id)
+    result = await session.execute(stmt)
+    attempts = result.scalars().all()
+
+    if not attempts:
+        # Si no hay intentos, devolver progreso vacío
+        progress_data = UserProgressData(
+            user_id=user_id,
+            total_xp=0,
+            current_streak=0,
+            total_questions_answered=0,
+            correct_answers=0,
+            progress_by_course=[]
+        )
     else:
-        progress_data = {
-            "user_id": user_id,
-            "total_xp": progress.total_xp,
-            "current_streak": progress.current_streak,
-            "total_questions_answered": progress.total_questions_answered,
-            "correct_answers": progress.correct_answers
-        }
+        # Calcular progreso por curso
+        progress_by_course = defaultdict(lambda: {"xp": 0, "questions": 0, "correct": 0})
+        for attempt in attempts:
+            course_name = attempt.course
+            progress_by_course[course_name]["questions"] += 1
+            if attempt.is_correct:
+                progress_by_course[course_name]["correct"] += 1
+                progress_by_course[course_name]["xp"] += 10
+            else:
+                progress_by_course[course_name]["xp"] += 2
+        
+        # Formatear la lista para la respuesta
+        progress_list = [
+            ProgressByCourse(
+                course=course,
+                xp=data["xp"],
+                questions_answered=data["questions"],
+                correct_answers=data["correct"]
+            ) for course, data in progress_by_course.items()
+        ]
+
+        # Calcular totales
+        total_xp = sum(item.xp for item in progress_list)
+        total_questions = sum(item.questions_answered for item in progress_list)
+        total_correct = sum(item.correct_answers for item in progress_list)
+
+        progress_data = UserProgressData(
+            user_id=user_id,
+            total_xp=total_xp,
+            current_streak=0,  # TODO: Implementar lógica de racha
+            total_questions_answered=total_questions,
+            correct_answers=total_correct,
+            progress_by_course=progress_list
+        )
+
+    response_model = UserProgressResponse(
+        success=True,
+        data=progress_data,
+        message="Progreso obtenido exitosamente"
+    )
     
-    response = {
-        "success": True,
-        "data": progress_data,
-        "message": "Progreso obtenido exitosamente"
-    }
-    
-    logger.info(f"✅ [DYNAMIC] Progreso obtenido: {response}")
-    return response
+    # Devuelve el diccionario del modelo Pydantic para que FastAPI lo serialice
+    return response_model.model_dump()
 
 async def _handle_get_stats(payload: Dict[str, Any], session: AsyncSession) -> Dict[str, Any]:
     """Maneja la acción get_stats"""

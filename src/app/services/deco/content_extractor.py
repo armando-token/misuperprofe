@@ -3,160 +3,69 @@ Extractor de contenido para generar preguntas basadas en el texto del capítulo
 Combina la filosofía DECO con extracción de contenido real
 """
 
-import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-from app.config import settings
-from app.services.openai_service import get_openai_client
-
+# NOTA: La dependencia de OpenAI y la generación de preguntas mediante LLM han sido eliminadas
+# según las instrucciones. La lógica para el motor semántico interno debe ser
+# implementada aquí basándose en las especificaciones del archivo old_server.md.
 
 class ContentExtractor:
     """
-    Extrae preguntas del contenido del capítulo usando IA
-    Mantiene la filosofía DECO pero basada en contenido real
+    Extrae preguntas estructuradas del contenido de los capítulos.
+    La lógica se basará en el motor semántico interno del proyecto.
     """
-    
     def __init__(self):
-        self.openai_client = get_openai_client()
+        """
+        Inicializa el extractor de contenido.
+        """
         self.cognitive_skills = [
             "análisis", "inferencia", "extrapolación", "aplicación", 
             "síntesis", "evaluación", "interpretación", "comparación"
         ]
-    
+
     def extract_question_from_content(self, content: str, topic: str, 
-                                    cognitive_skill: str = None) -> Dict:
+                                    cognitive_skill: str = None, area: str = "default") -> Dict:
         """
-        Extrae una pregunta DECO del contenido del capítulo
+        Extrae una pregunta DECO del contenido del capítulo utilizando el motor semántico interno.
         
-        Args:
-            content: Contenido del capítulo
-            topic: Tema específico
-            cognitive_skill: Habilidad cognitiva específica
-            
-        Returns:
-            Dict: Pregunta extraída del contenido
+        Esta es una implementación placeholder. La lógica real debe ser reconstruida
+        basándose en el documento de diseño del motor antiguo.
         """
+        logger.warning("Llamando a una implementación placeholder de extract_question_from_content.")
         try:
-            if not cognitive_skill:
-                cognitive_skill = "aplicación"  # Default
+            # TODO: Implementar la lógica de extracción de preguntas del motor semántico
+            # que se describe en v13/memory13/Legacy/old_server.md.
             
-            prompt = f"""
-            Basándote en el siguiente contenido del capítulo, genera una pregunta DECO:
-            
-            CONTENIDO DEL CAPÍTULO:
-            {content}
-            
-            TEMA: {topic}
-            HABILIDAD COGNITIVA: {cognitive_skill}
-            
-            INSTRUCCIONES:
-            1. Extrae información específica del contenido proporcionado
-            2. Crea una pregunta que requiera {cognitive_skill} del conocimiento
-            3. La pregunta debe estar basada ÚNICAMENTE en el contenido dado
-            4. Genera 4 alternativas donde solo una sea correcta
-            5. Los distractores deben ser plausibles y basados en errores conceptuales comunes
-            
-            Formato JSON:
-            {{
-                "question": "Pregunta basada en el contenido",
-                "alternatives": {{
-                    "A": "Alternativa A",
-                    "B": "Alternativa B", 
-                    "C": "Alternativa C",
-                    "D": "Alternativa D"
-                }},
-                "correct_answer": "A",
-                "cognitive_skill": "{cognitive_skill}",
-                "explanation": "Explicación basada en el contenido del capítulo",
-                "content_source": "Fragmento específico del contenido usado"
-            }}
-            """
-            
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=600,
-                temperature=0.7
-            )
-            
-            # Parsear respuesta JSON
-            content = response.choices[0].message.content.strip()
-            question_data = json.loads(content)
-            
-            return {
-                "topic": topic,
-                "cognitive_skill": cognitive_skill,
-                "question": question_data["question"],
-                "alternatives": question_data["alternatives"],
-                "correct_answer": question_data["correct_answer"],
-                "explanation": question_data["explanation"],
-                "content_source": question_data.get("content_source", ""),
-                "created_at": datetime.utcnow().isoformat(),
-                "source_type": "content_extraction"
-            }
-            
+            # La implementación actual es un placeholder y no es funcional.
+            raise NotImplementedError("La lógica del motor semántico interno aún no ha sido implementada.")
+
         except Exception as e:
-            logger.error(f"Error al extraer pregunta del contenido: {e}")
-            # Fallback a pregunta básica
-            return {
-                "topic": topic,
-                "cognitive_skill": cognitive_skill or "aplicación",
-                "question": f"Basándote en el contenido del capítulo sobre {topic}, ¿cuál es la respuesta correcta?",
-                "alternatives": {
-                    "A": "Opción A",
-                    "B": "Opción B", 
-                    "C": "Opción C",
-                    "D": "Opción D"
-                },
-                "correct_answer": "A",
-                "explanation": "Revisa el contenido del capítulo para la explicación correcta.",
-                "content_source": "Contenido del capítulo",
-                "created_at": datetime.utcnow().isoformat(),
-                "source_type": "content_extraction_fallback"
-            }
-    
+            logger.error(f"Error al extraer pregunta del contenido (placeholder): {e}")
+            return None
+
     def extract_multiple_questions(self, content: str, topic: str, 
-                                 num_questions: int = 3) -> List[Dict]:
+                                 num_questions: int = 3, area: str = "default") -> List[Dict]:
         """
-        Extrae múltiples preguntas del contenido
-        
-        Args:
-            content: Contenido del capítulo
-            topic: Tema específico
-            num_questions: Número de preguntas a generar
-            
-        Returns:
-            List[Dict]: Lista de preguntas extraídas
+        Extrae múltiples preguntas del contenido.
+        Placeholder que actualmente no funciona.
         """
         questions = []
-        
+        logger.warning("Llamando a una implementación placeholder de extract_multiple_questions.")
         for i in range(num_questions):
+            # Esta lógica es un placeholder y fallará hasta que se implemente la función principal.
             cognitive_skill = self.cognitive_skills[i % len(self.cognitive_skills)]
-            question = self.extract_question_from_content(content, topic, cognitive_skill)
-            questions.append(question)
-        
+            question = self.extract_question_from_content(content, topic, cognitive_skill, area)
+            if question:
+                questions.append(question)
         return questions
     
     def validate_content(self, content: str) -> bool:
         """
-        Valida que el contenido sea suficiente para generar preguntas
-        
-        Args:
-            content: Contenido a validar
-            
-        Returns:
-            bool: True si el contenido es válido
+        Valida si el contenido es suficiente para generar una pregunta.
+        (Implementación de placeholder)
         """
-        if not content or len(content.strip()) < 30:
-            return False
-        
-        # Verificar que tenga suficiente información
-        words = content.split()
-        if len(words) < 10:
-            return False
-        
-        return True 
+        return len(content.split()) > 50 

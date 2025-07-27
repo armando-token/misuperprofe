@@ -71,8 +71,24 @@ services:
       - ./logs:/app/logs  # Para logs persistentes
     restart: unless-stopped  # Reinicio automático
 
+  caddy:
+    image: caddy:2.7.6
+    container_name: misupercaddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - /etc/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+    depends_on:
+      - misuperapi
+
 volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  caddy_data:
     driver: local 

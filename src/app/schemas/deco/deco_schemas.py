@@ -20,6 +20,21 @@ class DECOQuestionRequest(BaseModel):
     chapter_id: Optional[int] = Field(None, description="ID del capítulo para extraer contenido")
 
 
+class DECOTheoryResponse(BaseModel):
+    """
+    Schema para la respuesta de teoría de DECO.
+    Esto no es una pregunta completa, sino el material para que el LLM la genere.
+    """
+    model_config = ConfigDict(from_attributes=True)
+    
+    course: str = Field(..., description="Nombre del curso")
+    topic: str = Field(..., description="Tema del capítulo")
+    source_chapter: str = Field(..., description="Título del capítulo de origen")
+    theory_content: str = Field(..., description="Contenido teórico extraído")
+    instruction: str = Field(default="generate_question_from_theory", description="Instrucción para el LLM")
+    metadata: Dict = Field(..., description="Metadatos adicionales como chapter_id")
+
+
 class DECOQuestionResponse(BaseModel):
     """Schema para respuesta de pregunta DECO"""
     model_config = ConfigDict(from_attributes=True)
@@ -42,9 +57,12 @@ class DECOAnswerRequest(BaseModel):
     """Schema para enviar respuesta a pregunta DECO"""
     model_config = ConfigDict(from_attributes=True)
     
-    session_id: str = Field(..., description="ID de la sesión DECO")
+    session_id: str = Field(..., description="ID de la sesión DECO, usualmente el título del capítulo o un ID numérico.")
     user_id: str = Field(..., description="ID del usuario")
     answer: str = Field(..., description="Respuesta del usuario (A, B, C, D)")
+    is_correct: bool = Field(..., description="El Custom GPT debe indicar si la respuesta fue correcta.")
+    area: str = Field(..., description="Área académica (enviada por el GPT)")
+    topic: str = Field(..., description="Tema específico (enviado por el GPT)")
     time_spent: Optional[int] = Field(None, description="Tiempo en segundos")
 
 

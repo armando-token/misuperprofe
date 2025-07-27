@@ -59,22 +59,32 @@
         "operationId": "dynamic_operation",
         "security": [{"bearerAuth": []}],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DynamicRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
-            "description": "Respuesta exitosa",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DynamicResponse"
+                  "$ref": "#/components/schemas/UserProgressResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -209,7 +219,7 @@
         "properties": {
           "action": {
             "type": "string",
-            "description": "Tipo de acción solicitada",
+            "description": "El tipo de operación a realizar. 'get_progress' es para el score y XP de un usuario. 'get_stats' es para datos generales del sistema.",
             "enum": ["get_courses", "get_question", "get_progress", "get_stats", "practice", "explain", "help"]
           },
           "course": {
@@ -277,12 +287,13 @@
         "type": "object",
         "properties": {
           "user_id": {"type": "string"},
-          "question_id": {"type": "string"},
-          "selected_answer": {"type": "string"},
+          "session_id": {"type": "string"},
+          "answer": {"type": "string"},
+          "is_correct": {"type": "boolean"},
           "area": {"type": "string"},
           "topic": {"type": "string"}
         },
-        "required": ["user_id", "question_id", "selected_answer", "area"]
+        "required": ["user_id", "session_id", "answer", "is_correct", "area"]
       },
       "DecoAnswerResponse": {
         "type": "object",
@@ -299,6 +310,42 @@
           "error": {"type": "string"},
           "detail": {"type": "string"}
         }
+      },
+      "UserProgressData": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "total_xp": { "type": "integer" },
+          "current_streak": { "type": "integer" },
+          "total_questions_answered": { "type": "integer" },
+          "correct_answers": { "type": "integer" },
+          "progress_by_course": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProgressByCourse"
+            }
+          }
+        },
+        "required": ["user_id", "total_xp", "current_streak", "total_questions_answered", "correct_answers", "progress_by_course"]
+      },
+      "ProgressByCourse": {
+        "type": "object",
+        "properties": {
+          "course": { "type": "string" },
+          "xp": { "type": "integer" },
+          "questions_answered": { "type": "integer" },
+          "correct_answers": { "type": "integer" }
+        },
+        "required": ["course", "xp", "questions_answered", "correct_answers"]
+      },
+      "UserProgressResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/UserProgressData" },
+          "message": { "type": "string" }
+        },
+        "required": ["success", "data", "message"]
       }
     }
   }

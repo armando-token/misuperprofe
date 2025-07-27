@@ -15,9 +15,10 @@ from app.models.curso import Curso
 from app.models.capitulo import Capitulo
 from app.config import settings
 
-def parse_markdown(content: str) -> List[Tuple[str, str]]:
+def parse_markdown(content: str) -> List[Tuple[str, str, str]]:
     """
-    Parsea el contenido markdown y extrae los capítulos:
+    Parsea el contenido markdown y extrae los capítulos.
+    Devuelve una lista de tuplas con (título, contenido_crudo, contenido_html).
     - Solo crea capítulos por títulos de nivel 2 o 3 (##, ###).
     - El contenido de cada capítulo incluye todo lo que hay debajo (texto, listas, subtítulos menores) hasta el siguiente título de igual o mayor nivel.
     - Si el contenido de un capítulo supera los 1500 caracteres, se divide en partes.
@@ -32,11 +33,11 @@ def parse_markdown(content: str) -> List[Tuple[str, str]]:
     MAX_CONTENT_LEN = 1500
     def truncate_title(title):
         return title if len(title) <= MAX_TITLE_LEN else title[:MAX_TITLE_LEN-3] + '...'
-    def split_content(title, content):
+    def split_content(title, content_lines):
         parts = []
-        text = '\n'.join(content)
+        text = '\n'.join(content_lines)
         if len(text) <= MAX_CONTENT_LEN:
-            parts.append((truncate_title(title), markdown.markdown(text)))
+            parts.append((truncate_title(title), text, markdown.markdown(text)))
         else:
             paragraphs = text.split('\n\n')
             current_part = []
@@ -45,7 +46,8 @@ def parse_markdown(content: str) -> List[Tuple[str, str]]:
             for p in paragraphs:
                 if current_len + len(p) > MAX_CONTENT_LEN and current_part:
                     part_title = f"{title} (parte {part_num})"
-                    parts.append((truncate_title(part_title), markdown.markdown('\n\n'.join(current_part))))
+                    part_text = '\n\n'.join(current_part)
+                    parts.append((truncate_title(part_title), part_text, markdown.markdown(part_text)))
                     current_part = []
                     current_len = 0
                     part_num += 1
@@ -53,7 +55,8 @@ def parse_markdown(content: str) -> List[Tuple[str, str]]:
                 current_len += len(p)
             if current_part:
                 part_title = f"{title} (parte {part_num})"
-                parts.append((truncate_title(part_title), markdown.markdown('\n\n'.join(current_part))))
+                part_text = '\n\n'.join(current_part)
+                parts.append((truncate_title(part_title), part_text, markdown.markdown(part_text)))
         return parts
     while i < len(lines):
         line = lines[i]
@@ -110,7 +113,7 @@ def load_markdown(content_dir: Path):
         with open(teoria_path, 'r', encoding='utf-8') as f:
             content = f.read()
         chapters = parse_markdown(content)
-        for orden, (titulo, contenido) in enumerate(chapters, 1):
+        for orden, (titulo, contenido_md, contenido_html) in enumerate(chapters, 1):
             capitulo = session.query(Capitulo).filter_by(
                 curso_id=curso.id,
                 titulo=titulo
@@ -119,13 +122,14 @@ def load_markdown(content_dir: Path):
                 capitulo = Capitulo(
                     curso_id=curso.id,
                     titulo=titulo,
-                    contenido_md='',
-                    contenido_html=contenido,
+                    contenido_md=contenido_md,
+                    contenido_html=contenido_html,
                     orden=orden
                 )
                 session.add(capitulo)
             else:
-                capitulo.contenido_html = contenido
+                capitulo.contenido_md = contenido_md
+                capitulo.contenido_html = contenido_html
                 capitulo.orden = orden
         session.commit()
         print(f"Teoría cargada exitosamente para el curso {curso_nombre}")

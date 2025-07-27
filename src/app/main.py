@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from typing import Any
+from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.api.routers.agent_router import agent_router as agent_router_instance
@@ -18,14 +19,27 @@ from app.api.routers.deco_router import router as deco_router
 from app.api.routers.its_router import router as its_router
 from app.api.routers.phase3_router import router as phase3_router
 from app.api.routers.dynamic_router import dynamic_router
+from app.api.routers.ask_router import ask_router
 from app.core.mcp import mcp
+from app.tools.semantic_search_optimized import get_semantic_search
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Lógica de inicio
+    logging.info("Iniciando la aplicación y el motor semántico...")
+    await get_semantic_search()
+    logging.info("Motor semántico inicializado y listo.")
+    yield
+    # Lógica de apagado (si es necesaria)
+    logging.info("Apagando la aplicación.")
 
 app = FastAPI(
     title=settings.PROJECT_NAME + " - Agent Service",
     openapi_url=f"{settings.API_V1_STR}/agent/openapi.json",
     servers=[
         {"url": "https://app.misuperprofe.com/api/v1", "description": "Production server"}
-    ]
+    ],
+    lifespan=lifespan
 )
 
 if settings.BACKEND_CORS_ORIGINS:
@@ -48,6 +62,7 @@ app.include_router(deco_router, prefix=settings.API_V1_STR, tags=["DECO"])
 app.include_router(its_router, prefix=settings.API_V1_STR, tags=["ITS"])
 app.include_router(phase3_router, prefix=settings.API_V1_STR, tags=["Phase3"])
 app.include_router(dynamic_router, tags=["Dynamic"])
+app.include_router(ask_router, prefix=settings.API_V1_STR, tags=["Semantic Search"])
 app.include_router(mcp.router)
 app.include_router(log_router, prefix=settings.API_V1_STR, tags=["Logging"])
 

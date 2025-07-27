@@ -109,11 +109,11 @@ class Attempt(Base):
     __tablename__ = "attempts"
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id_hash = Column(String(64), nullable=False, index=True)
-    question_id = Column(String(64), nullable=False)  # Almacena el item_id (chapter_id) como string
+    question_id = Column(String(255), nullable=False)  # Almacena el item_id (chapter_id) como string
     answer = Column(String, nullable=True)  # Respuesta textual del estudiante
     is_correct = Column(Boolean, nullable=False)
     course = Column(String(64), nullable=False)
-    topic = Column(String(200), nullable=True)  # Título del capítulo/item
+    topic = Column(String(255), nullable=True)  # Título del capítulo/item
     created_at = Column(NaiveDateTime, default=lambda: datetime.utcnow(), nullable=False)
 
     def __repr__(self) -> str:

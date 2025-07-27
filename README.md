@@ -1,316 +1,129 @@
-# 🎓 MiSuperProfe - Sistema de Tutoría Inteligente
+# 🎓 MiSuperProfe - Sistema de Tutoría Inteligente v13
 
-[![Status](https://img.shields.io/badge/Status-Producción%20Ready-green.svg)](https://app.misuperprofe.com)
+[![Status](https://img.shields.io/badge/Status-Desplegado%20y%20Validado-green.svg)](https://app.misuperprofe.com)
 [![Version](https://img.shields.io/badge/Version-v13-blue.svg)](https://github.com/MiSuperProfe/v13)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Performance](https://img.shields.io/badge/Performance-99.9%25%20Optimizado-brightgreen.svg)](https://app.misuperprofe.com)
-[![Tests](https://img.shields.io/badge/Tests-95.2%25%20Passing-brightgreen.svg)](https://app.misuperprofe.com)
+[![Tests](https://img.shields.io/badge/Tests-100%25%20Passing%20(Auditado)-brightgreen.svg)](memory/audit.md)
+[![Docker](https://img.shields.io/badge/Docker-Compose%20v2-blue.svg)](https://docs.docker.com/compose/)
 
 ## 🎯 **Descripción del Proyecto**
 
-**MiSuperProfe** es un sistema de tutoría inteligente que utiliza Inteligencia Artificial para proporcionar respuestas educativas precisas y preguntas de práctica personalizadas. El sistema está desplegado en AWS y funciona a través de un Custom GPT de ChatGPT.
+**MiSuperProfe** es un sistema de tutoría inteligente que utiliza un motor semántico local y un Custom GPT para proporcionar respuestas educativas precisas y preguntas de práctica personalizadas. El sistema está completamente contenerizado, desplegado en un servidor dedicado y ofrece una experiencia de aprendizaje interactiva y adaptativa.
 
 ### **Características Principales:**
-- 🤖 **Búsqueda Semántica Inteligente** - Respuestas precisas basadas en contenido educativo
-- 📚 **10 Cursos Completos** - Cultura general, historia, lenguaje, geografía, filosofía, literatura, biología, economía, cívica, psicología
-- 🎯 **Preguntas de Práctica Dinámicas** - Generadas con IA para cada estudiante
-- 📊 **Sistema de Progreso** - Seguimiento del rendimiento y recomendaciones
-- 🏆 **Gamificación Completa** - XP, logros, leaderboards y niveles
-- 🧠 **Algoritmo Adaptativo SM-2** - Repetición espaciada optimizada
-- 🛡️ **Protección de Datos** - Backups automáticos y reinicios seguros
-- ⚡ **Rendimiento Ultra Optimizado** - 99.9% de mejora en tiempos de respuesta
+- 🤖 **Motor Semántico Optimizado:** Búsqueda de respuestas basada en `sentence-transformers` y `faiss` para encontrar la teoría más relevante en **2473 capítulos** de conocimiento.
+- 🧠 **Motor Híbrido DECO:** El Custom GPT utiliza la teoría extraída por el motor semántico para generar preguntas de práctica contextualizadas y de alta calidad.
+- 📚 **10 Cursos Completos:** Incluyendo historia, biología, lenguaje, geografía, y más.
+- 📊 **Sistema de Progreso Detallado:** Seguimiento de XP y rendimiento, con un **desglose por cada curso**, permitiendo un análisis granular del avance del estudiante.
+- ⚡ **Endpoint Dinámico Centralizado:** Un único endpoint (`/dynamic`) que maneja acciones de `practice`, `get_progress`, `get_courses`, etc.
+- 🐳 **Arquitectura 100% Contenerizada:** Todos los servicios (API, PostgreSQL, Redis, Caddy) son gestionados por Docker Compose v2 para máxima portabilidad y un despliegue simplificado.
+- 🔒 **Seguridad con SSL Automático:** Caddy, como parte del stack de Docker, gestiona y renueva automáticamente los certificados SSL/TLS.
+- 🛡️ **Scripts de Mantenimiento:** Herramientas para backups, reinicios seguros y monitoreo.
 
-## 🚀 **Estado del Proyecto**
+## 🚀 **Estado Actual del Proyecto**
 
-**✅ SISTEMA COMPLETAMENTE OPERATIVO - OPTIMIZADO Y LISTO PARA PRODUCCIÓN**
+**✅ SISTEMA COMPLETAMENTE DESPLEGADO, AUDITADO Y OPERATIVO**
+
+El sistema ha sido desplegado exitosamente desde cero en un servidor virgen. Todas las funcionalidades han sido validadas a través de un plan de auditoría detallado (`memory/audit.md`), confirmando que cada componente funciona como se espera.
 
 ### **Servicios Desplegados:**
-- ✅ **Ubuntu Server AWS** - 18.214.59.62 (app.misuperprofe.com)
-- ✅ **PostgreSQL Database** - 2473 capítulos cargados
-- ✅ **Redis Cache** - Optimización de rendimiento
-- ✅ **FastAPI MCP Server** - API REST completa
-- ✅ **Nginx Reverse Proxy** - SSL/HTTPS configurado
-- ✅ **SSL Certificate** - Let's Encrypt para app.misuperprofe.com
-
-### **🎉 RESULTADOS DE OPTIMIZACIÓN:**
-- **Tasa de éxito**: 95.2% (20/21 pruebas exitosas)
-- **Tiempo promedio**: 0.00s (cache funcionando perfectamente)
-- **Optimización de rendimiento**: 99.9% mejor
-- **Estado**: **LISTO PARA PRODUCCIÓN**
-
-### **🔧 OPTIMIZACIONES APLICADAS:**
-1. **Singleton Pattern**: Motor de búsqueda semántica cargado una sola vez
-2. **Cache de Resultados**: Evita regenerar preguntas similares
-3. **Prompts Optimizados**: Reducidos de 800 a 600 tokens
-4. **Timeouts Agresivos**: 15-20 segundos máximo
-5. **Temperatura Reducida**: De 0.7 a 0.5 para respuestas más rápidas
-6. **Fallbacks Ultra Optimizados**: Respuestas instantáneas en caso de error
-
-### **📈 MEJORAS DE RENDIMIENTO:**
-- **Antes**: 10.47s promedio
-- **Después**: 0.00s promedio
-- **Mejora**: **99.9% de optimización**
-
-### **✅ FUNCIONALIDADES OPERATIVAS:**
-- **Infraestructura**: 100% funcional
-- **Sistema Base**: 100% funcional
-- **DECO**: 100% funcional
-- **ITS**: 100% funcional
-- **Microlearning**: 100% funcional
-- **Analytics**: 100% funcional
-- **Gamificación**: 100% funcional
-
-## 📚 **Contenido Educativo**
-
-### **Base de Datos Poblada:**
-- ✅ **2473 capítulos** cargados desde markdown
-- ✅ **10 cursos completos** con contenido detallado
-- ✅ **Embeddings semánticos** precargados (384 dimensiones)
-- ✅ **Motor de búsqueda optimizado** con modelo `all-MiniLM-L6-v2`
-
-### **Cursos Disponibles:**
-1. **Cultura General** - Conocimientos básicos y actualidad
-2. **Historia** - Historia universal y eventos importantes
-3. **Lenguaje** - Gramática, literatura y comunicación
-4. **Geografía** - Geografía física y política mundial
-5. **Filosofía** - Pensamiento filosófico y lógica
-6. **Literatura** - Obras literarias y análisis
-7. **Biología** - Ciencias de la vida y evolución
-8. **Economía** - Principios económicos y finanzas
-9. **Cívica** - Derechos, deberes y democracia
-10. **Psicología** - Comportamiento humano y mente
-
-## 🔌 **API y Endpoints**
-
-### **Endpoints Principales:**
-- `GET /api/v1/courses` - Lista de cursos disponibles
-- `POST /api/v1/ask` - Búsqueda semántica para preguntas
-- `POST /api/v1/get_question` - Generación de preguntas con IA
-- `POST /api/v1/log_result` - Registro de resultados y progreso
-- `GET /api/v1/user_stats` - Estadísticas del usuario
-- `GET /api/v1/achievements/leaderboard` - Tablas de clasificación
-
-### **Acceso Público:**
-- **API Documentation:** https://app.misuperprofe.com/docs
-- **API Base URL:** https://app.misuperprofe.com/api/v1/
-- **Health Check:** https://app.misuperprofe.com/api/v1/agent/health
-
-## 🛡️ **Sistema de Protección de Datos**
-
-### **Problema Resuelto:**
-- ✅ **Protección contra pérdida de datos** durante reinicios del servidor
-- ✅ **Backups automáticos** cada 6 horas y diarios a medianoche
-- ✅ **Volúmenes persistentes** para PostgreSQL y Redis
-- ✅ **Reinicios seguros** con verificación de integridad
-- ✅ **Restauración rápida** desde backups en caso de pérdida
-
-### **Scripts de Protección:**
-```bash
-# Reinicio seguro (SIEMPRE usar)
-./scripts/safe_restart.sh
-
-# Backup manual
-./scripts/backup_database.sh
-
-# Verificar integridad
-./scripts/monitor_data.sh
-
-# Restaurar desde backup
-./scripts/restore_database.sh
-```
-
-## 🧠 **Algoritmo Adaptativo**
-
-### **Tipo de Algoritmo: SM-2 (SuperMemo 2)**
-El sistema utiliza una variación del algoritmo SM-2 combinado con elementos de Teoría de Respuesta al Ítem (IRT) para crear un sistema de aprendizaje verdaderamente adaptativo.
-
-### **Características:**
-- **Factor de Facilidad (EF)** - Se ajusta según el rendimiento del estudiante
-- **Repetición Espaciada** - Optimiza la memoria a largo plazo
-- **Dificultad Dinámica** - Se adapta al nivel de cada estudiante
-- **Personalización Individual** - Cada estudiante tiene su propio progreso
-
-## 🏗️ **Arquitectura del Sistema**
-
-### **Infraestructura:**
-```
-AWS Ubuntu Server (18.214.59.62)
-├── PostgreSQL Database (Puerto 5432)
-├── Redis Cache (Puerto 6379)
-├── FastAPI MCP Server (Puerto 8000)
-├── Nginx Reverse Proxy (Puerto 443)
-└── SSL Certificate (Let's Encrypt)
-```
-
-### **Servicios Docker:**
-- **PostgreSQL** - Base de datos principal con volúmenes persistentes
-- **Redis** - Cache y sesiones con persistencia AOF
-- **FastAPI** - Servidor principal de la aplicación
-- **Nginx** - Proxy reverso con SSL
-
-## 🔧 **Instalación y Configuración**
-
-### **Requisitos:**
-- Docker y Docker Compose
-- Git
-- Acceso a internet para descargar imágenes
-
-### **Instalación Rápida:**
-```bash
-# Clonar repositorio
-git clone https://github.com/MiSuperProfe/v13.git
-cd v13
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus configuraciones
-
-# Iniciar servicios
-docker-compose up -d
-
-# Configurar backups automáticos
-./scripts/setup_cron.sh
-```
-
-### **Configuración de Desarrollo:**
-```bash
-# Para reinicios seguros durante desarrollo
-./scripts/safe_restart.sh
-
-# Para verificar estado del sistema
-./scripts/monitor_data.sh
-```
-
-## 📊 **Estadísticas del Sistema**
-
-### **Contenido Cargado:**
-- **2473 capítulos** de teoría educativa
-- **10 cursos** completos
-- **384 dimensiones** por embedding semántico
-- **Índice FAISS** optimizado con 2473 vectores
-
-### **Rendimiento:**
-- **Tiempo de respuesta:** 1-3 segundos para búsquedas semánticas
-- **Caché de embeddings:** Cargado en 1.44 segundos
-- **Disponibilidad:** 99.9% (servicios Docker con health checks)
-
-## 🔒 **Seguridad y Autenticación**
-
-### **Configuración de Seguridad:**
-- ✅ **SSL/HTTPS** configurado en https://app.misuperprofe.com
-- ✅ **API Key** configurado para autenticación
-- ✅ **CORS** configurado para ChatGPT
-- ✅ **Autenticación Bearer Token** funcionando
-- ✅ **Headers de autorización** validados en todos los endpoints
-
-## 🤖 **Integración con Custom GPT**
-
-### **Estado de la Integración:**
-- ✅ **Custom GPT conectado** y operativo
-- ✅ **Lista de cursos** obtenida correctamente
-- ✅ **Preguntas de teoría** respondidas con contenido real
-- ✅ **Comunicación con API** establecida y operativa
-- ✅ **Schema OpenAPI** actualizado y funcionando
-
-### **Funcionalidades del Custom GPT:**
-- ✅ **Búsqueda semántica** para preguntas de teoría
-- ✅ **Generación de preguntas** de práctica
-- ✅ **Evaluación de respuestas** de estudiantes
-- ✅ **Logging de progreso** en base de datos
-- ✅ **Recomendaciones** basadas en rendimiento
-
-## 📁 **Estructura del Proyecto**
-
-```
-/home/ubuntu/
-├── src/                          # Código fuente de la aplicación
-│   ├── app/
-│   │   ├── api/                  # Endpoints de la API
-│   │   ├── models/               # Modelos de base de datos
-│   │   ├── schemas/              # Schemas de Pydantic
-│   │   ├── services/             # Lógica de negocio
-│   │   └── tools/                # Herramientas auxiliares
-├── content/                       # Contenido educativo (markdown)
-├── scripts/                       # Scripts de administración
-│   ├── backup_database.sh        # Backup automático
-│   ├── safe_restart.sh           # Reinicio seguro
-│   ├── restore_database.sh       # Restauración
-│   ├── monitor_data.sh           # Monitoreo
-│   └── setup_cron.sh            # Configuración cron
-├── backups/                       # Backups automáticos
-├── logs/                         # Logs persistentes
-├── docker-compose.yml            # Configuración de servicios
-└── PROTECCION_DATOS.md          # Documentación de protección
-```
-
-## 🎯 **Funcionalidades para Estudiantes**
-
-### **Experiencia de Aprendizaje:**
-1. **Preguntas de Teoría** - Obtienen respuestas precisas basadas en contenido educativo
-2. **Preguntas de Práctica** - Reciben preguntas generadas dinámicamente con IA
-3. **Evaluación Inmediata** - Reciben feedback instantáneo sobre sus respuestas
-4. **Seguimiento de Progreso** - Su rendimiento se registra automáticamente
-5. **Recomendaciones** - Reciben sugerencias de estudio basadas en su rendimiento
-6. **Gráficos de Progreso** - Visualizan su rendimiento por materia
-
-## 🔧 **Desarrollo y Mantenimiento**
-
-### **Procedimientos Seguros:**
-- ✅ **Reinicios seguros** con `./scripts/safe_restart.sh`
-- ✅ **Backups automáticos** cada 6 horas
-- ✅ **Monitoreo continuo** con `./scripts/monitor_data.sh`
-- ✅ **Restauración rápida** con `./scripts/restore_database.sh`
-
-### **Comandos Importantes:**
-```bash
-# Verificar estado del sistema
-./scripts/monitor_data.sh
-
-# Hacer backup manual
-./scripts/backup_database.sh
-
-# Reiniciar de forma segura
-./scripts/safe_restart.sh
-
-# Ver logs de backup
-tail -f logs/backup.log
-```
-
-## 📈 **Roadmap y Futuras Mejoras**
-
-### **Próximas Funcionalidades:**
-- 🔄 **Calificación automática** más avanzada
-- 📊 **Analytics más detallados** para administradores
-- 🎮 **Más elementos de gamificación**
-- 📱 **Interfaz móvil** nativa
-- 🌐 **Multiidioma** completo
-
-## 🤝 **Contribución**
-
-### **Cómo Contribuir:**
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-### **Reportar Bugs:**
-- Usa el sistema de Issues de GitHub
-- Incluye información detallada sobre el problema
-- Adjunta logs si es posible
-
-## 📄 **Licencia**
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## 📞 **Contacto**
-
-- **Proyecto:** [MiSuperProfe v13](https://github.com/MiSuperProfe/v13)
-- **Sitio Web:** [app.misuperprofe.com](https://app.misuperprofe.com)
-- **API Docs:** [docs.misuperprofe.com](https://app.misuperprofe.com/docs)
+- ✅ **Servidor:** Ubuntu en `app.misuperprofe.com`
+- ✅ **Base de Datos (Docker):** PostgreSQL con 2473 capítulos.
+- ✅ **Caché (Docker):** Redis para optimización.
+- ✅ **API (Docker):** FastAPI sirviendo la lógica de la aplicación.
+- ✅ **Proxy Inverso con SSL (Docker):** Caddy gestionando HTTPS.
 
 ---
 
-**⭐ Si este proyecto te ayuda, considera darle una estrella en GitHub!**
+## 🏗️ **Arquitectura del Sistema**
 
-**Documentación actualizada el 22 de Julio de 2025 - SISTEMA DE PROTECCIÓN DE DATOS IMPLEMENTADO** 
+El sistema está completamente contenerizado usando Docker Compose v2, lo que asegura la portabilidad y consistencia entre entornos. Todos los servicios, incluyendo el proxy inverso Caddy, operan dentro de la misma red de Docker, simplificando la comunicación y la seguridad.
+
+```mermaid
+graph TD
+    A[Internet] -->|HTTPS (Puerto 443)| B(Servidor Ubuntu);
+    subgraph Servidor Ubuntu
+      subgraph Red Docker ('v13_default')
+        B --> C[Contenedor Caddy];
+        C -->|reverse_proxy a 'misuperapi:8000'| E[Contenedor API FastAPI];
+        E --> F[Contenedor PostgreSQL];
+        E --> G[Contenedor Redis];
+      end
+    end
+```
+
+---
+
+## 🔧 **Guía de Despliegue Simplificada (Desde Cero)**
+
+Este proyecto ha sido optimizado para un despliegue rápido y sencillo en un servidor Ubuntu virgen. (Ver `memory/start.md` para la guía detallada con explicaciones).
+
+### **1. Preparación del Servidor**
+```bash
+# Actualizar repositorios e instalar herramientas base
+sudo apt-get update && sudo apt-get install -y docker.io git python3-pip
+
+# Instalar Docker Compose v2 (Plugin)
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+mkdir -p $DOCKER_CONFIG/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+```
+
+### **2. Despliegue y Configuración**
+```bash
+# Clonar el repositorio
+git clone git@github.com:MiSuperProfe/v13.git
+cd v13
+
+# Crear el Caddyfile (único paso de configuración manual)
+sudo mkdir -p /etc/caddy
+echo "app.misuperprofe.com { reverse_proxy misuperapi:8000 }" | sudo tee /etc/caddy/Caddyfile
+```
+
+### **3. Construcción y Arranque**
+El `docker-compose.yml` automatiza la instalación de dependencias, migraciones y arranque.
+```bash
+# Construir y arrancar todos los servicios
+docker compose up --build -d
+
+# Cargar el contenido teórico en la BD (esperar ~1-2 min después del paso anterior)
+docker compose exec misuperapi python scripts/load_markdown.py
+```
+¡Listo! El sistema estará operativo en `https://app.misuperprofe.com`.
+
+---
+
+## 🔌 **API y Endpoints Clave**
+
+La API ha sido auditada y los siguientes endpoints son los puntos de interacción principales. El esquema completo y compatible se encuentra en `openapi_schema_COMPATIBLE.json`.
+
+- **`GET /api/v1/ask`**: Acceso directo al motor semántico para buscar teoría relevante a partir de un texto.
+- **`GET /api/v1/courses`**: Lista los 10 cursos disponibles.
+- **`POST /api/v1/deco/question`**: **(Endpoint Principal)** Utilizado por el GPT para obtener el material teórico de un capítulo específico y generar una pregunta.
+- **`POST /api/v1/deco/answer`**: Registra y evalúa la respuesta a una pregunta DECO, enviado por el GPT.
+- **`POST /api/v1/dynamic`**: Un endpoint versátil que maneja múltiples acciones:
+    - `action: 'get_courses'`: Lista todos los cursos.
+    - `action: 'get_progress'`: **Obtiene el progreso detallado del usuario, incluyendo XP total y un desglose por cada curso.**
+    - `action: 'get_stats'`: Obtiene estadísticas globales del sistema.
+- **`GET /api/v1/agent/health`**: Endpoint de salud para monitoreo.
+
+---
+
+## 🛡️ **Mantenimiento y Operaciones**
+
+El proyecto incluye un conjunto de scripts en la carpeta `scripts/` para facilitar la administración.
+
+```bash
+# Reinicio seguro que crea un backup antes de detener los contenedores (RECOMENDADO)
+./scripts/safe_restart.sh
+
+# Crear un backup manual de la base de datos y Redis
+./scripts/backup_database.sh
+
+# Verificar el estado de todos los contenedores
+docker compose ps
+
+# Ver logs en tiempo real de todos los servicios
+docker compose logs -f
+``` 

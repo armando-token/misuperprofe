@@ -12,7 +12,7 @@
 
 ### **Características Principales:**
 - 🤖 **Motor Semántico Optimizado:** Búsqueda de respuestas basada en `sentence-transformers` y `faiss` para encontrar la teoría más relevante en **2473 capítulos** de conocimiento.
-- 🧠 **Motor Híbrido DECO:** El Custom GPT utiliza la teoría extraída por el motor semántico para generar preguntas de práctica contextualizadas y de alta calidad.
+- 🧠 **Arquitectura de Patrones DECO:** El sistema utiliza una matriz de "patrones" para generar preguntas de práctica altamente personalizadas. Estos patrones ajustan el **contexto** (ej. "caso clínico" vs. "dilema ético"), el **nivel cognitivo** y el **estilo** de la pregunta según el área académica del estudiante, garantizando una experiencia de aprendizaje relevante.
 - 📚 **10 Cursos Completos:** Incluyendo historia, biología, lenguaje, geografía, y más.
 - 📊 **Sistema de Progreso Detallado:** Seguimiento de XP y rendimiento, con un **desglose por cada curso**, permitiendo un análisis granular del avance del estudiante.
 - ⚡ **Endpoint Dinámico Centralizado:** Un único endpoint (`/dynamic`) que maneja acciones de `practice`, `get_progress`, `get_courses`, etc.
@@ -52,14 +52,18 @@ graph TD
     end
 ```
 
-### Motor de Búsqueda Semántica (Local y Rápido)
-Una de las piezas centrales del proyecto es su capacidad para entender el significado de las preguntas y encontrar el contenido más relevante sin depender de servicios de IA externos para la búsqueda. Esto se logra a través de un motor de búsqueda semántica local que funciona de la siguiente manera:
+### Motor Híbrido: Búsqueda Semántica + Patrones DECO
+Una de las piezas centrales del proyecto es su capacidad para generar contenido educativo relevante y contextualizado.
 
-- **Base de Datos Relacional (PostgreSQL):** Los 2473 capítulos de conocimiento se almacenan de forma segura y persistente en una base de datos PostgreSQL. **Es importante aclarar que esta no es una base de datos vectorial.**
-- **Vectorización en Tiempo Real (`sentence-transformers`):** Al iniciar la aplicación, el contenido de cada capítulo se convierte en un vector numérico (embedding) que representa su significado semántico.
-- **Índice en Memoria (`faiss`):** Todos estos vectores se cargan en un índice FAISS (una librería de Facebook AI) que reside en la memoria RAM. FAISS está altamente optimizado para encontrar los vectores más similares a la velocidad de la luz.
+1.  **Motor de Búsqueda Semántica (Extracción de Teoría):**
+    -   **Base de Datos Relacional (PostgreSQL):** Los 2473 capítulos de conocimiento se almacenan de forma segura.
+    -   **Vectorización en Tiempo Real (`sentence-transformers`):** Al iniciar la aplicación, el contenido de cada capítulo se convierte en un vector numérico (embedding).
+    -   **Índice en Memoria (`faiss`):** Todos los vectores se cargan en un índice FAISS que permite encontrar los capítulos más relevantes a una consulta en milisegundos.
 
-Cuando un usuario hace una pregunta, esta también se convierte en un vector y FAISS encuentra instantáneamente los capítulos más relevantes en el índice en memoria. Esta arquitectura nos proporciona una búsqueda semántica potente y extremadamente rápida, manteniendo los costos bajos y la soberanía de los datos.
+2.  **Motor de Generación de Preguntas (Patrones DECO):**
+    -   Una vez que el motor semántico extrae la teoría relevante, el sistema consulta el archivo de patrones `deco_patterns.py`.
+    -   Este archivo le indica al Custom GPT, basándose en el **área del usuario** y la **materia**, qué tipo de pregunta construir (ej. un problema de aplicación para ingeniería vs. un análisis de texto para humanidades).
+    -   Esta arquitectura híbrida asegura que las preguntas no solo sean correctas (basadas en la teoría) sino también **pedagógicamente relevantes** para el perfil del estudiante.
 
 ---
 
@@ -109,7 +113,7 @@ La API ha sido auditada y los siguientes endpoints son los puntos de interacció
 
 - **`GET /api/v1/ask`**: Acceso directo al motor semántico para buscar teoría relevante a partir de un texto.
 - **`GET /api/v1/courses`**: Lista los 10 cursos disponibles.
-- **`POST /api/v1/deco/question`**: **(Endpoint Principal)** Utilizado por el GPT para obtener el material teórico de un capítulo específico y generar una pregunta.
+- **`POST /api/v1/deco/question`**: **(Endpoint Principal)** Utilizado por el GPT para obtener el material teórico de un capítulo específico y la "receta" del patrón DECO para generar una pregunta.
 - **`POST /api/v1/deco/answer`**: Registra y evalúa la respuesta a una pregunta DECO, enviado por el GPT.
 - **`POST /api/v1/dynamic`**: Un endpoint versátil que maneja múltiples acciones:
     - `action: 'get_courses'`: Lista todos los cursos.
@@ -135,4 +139,4 @@ docker compose ps
 
 # Ver logs en tiempo real de todos los servicios
 docker compose logs -f
-``` 
+```

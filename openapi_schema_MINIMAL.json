@@ -1,0 +1,260 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MiSuperProfe API - GPT Minimal",
+    "description": "Esquema de API mínimo y enfocado para el Custom GPT. Contiene solo los endpoints esenciales para el tutor.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://app.misuperprofe.com",
+      "description": "Servidor de producción"
+    }
+  ],
+  "paths": {
+
+    "/api/v1/dynamic": {
+      "post": {
+        "summary": "Endpoint dinámico para operaciones generales",
+        "description": "Usar para acciones como 'get_courses', 'set_user_area', 'help', o 'explain'.",
+        "operationId": "dynamic_operation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DynamicRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta dinámica",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DynamicResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/deco/question": {
+      "post": {
+        "summary": "Obtener material para generar una pregunta DECO",
+        "operationId": "getDecoQuestion",
+        "tags": ["deco"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecoQuestionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Material para la pregunta DECO",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecoQuestionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/deco/answer": {
+      "post": {
+        "summary": "Registrar la respuesta de una pregunta DECO",
+        "operationId": "submitDecoAnswer",
+        "tags": ["deco"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecoAnswerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta registrada con feedback",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecoAnswerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/achievements/leaderboard": {
+      "get": {
+        "summary": "Obtener el leaderboard semanal",
+        "description": "Devuelve el ranking de los mejores jugadores para una liga específica.",
+        "operationId": "get_weekly_leaderboard",
+        "tags": ["achievements"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "league_id",
+            "in": "query",
+            "description": "ID de la liga. Usar 'global_weekly' para el ranking semanal general.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global_weekly"
+            }
+          },
+          {
+            "name": "top_n",
+            "in": "query",
+            "description": "Número de jugadores a devolver en el ranking.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leaderboard obtenido exitosamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaderboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "CoursesResponse": {
+        "type": "object",
+        "properties": {
+          "courses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {"type": "string"},
+                "name": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "DynamicRequest": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Acción a realizar: get_courses, set_user_area, help, explain",
+            "enum": ["get_courses", "set_user_area", "help", "explain"]
+          },
+          "user_id": {"type": "string"},
+          "area": {"type": "string", "description": "El área del postulante (A, B, C, D o E)", "enum": ["A", "B", "C", "D", "E"]},
+          "question": {"type": "string"}
+        },
+        "required": ["action", "user_id"]
+      },
+      "DynamicResponse": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "data": {"type": "object"},
+          "message": {"type": "string"}
+        }
+      },
+      "DecoQuestionRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": {"type": "string"},
+          "area": {"type": "string", "description": "Es el curso o materia, ej: 'historia'"},
+          "topic": {"type": "string", "default": "general"},
+          "chapter_id": {"type": "integer"}
+        },
+        "required": ["user_id", "area"]
+      },
+      "DecoQuestionResponse": {
+        "type": "object",
+        "description": "Contiene la teoría para que el GPT genere la pregunta.",
+        "properties": {
+          "theory_content": {"type": "string"},
+          "source_chapter": {"type": "string"},
+          "course": {"type": "string"},
+          "topic": {"type": "string"},
+          "metadata": {"type": "object"}
+        }
+      },
+      "DecoAnswerRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": {"type": "string"},
+          "session_id": {"type": "string", "description": "ID de la pregunta, usualmente el 'source_chapter'"},
+          "answer": {"type": "string", "description": "La alternativa que eligió el usuario, ej: 'A'"},
+          "is_correct": {"type": "boolean", "description": "El GPT debe determinar si la respuesta fue correcta."},
+          "area": {"type": "string"},
+          "topic": {"type": "string"}
+        },
+        "required": ["user_id", "session_id", "answer", "is_correct", "area"]
+      },
+      "DecoAnswerResponse": {
+        "type": "object",
+        "properties": {
+          "is_correct": {"type": "boolean"},
+          "feedback": {"type": "string"},
+          "micro_lesson": {"type": "string"}
+        }
+      },
+      "LeaderboardEntry": {
+        "type": "object",
+        "properties": {
+          "rank": {"type": "integer"},
+          "user_id": {"type": "string"},
+          "score": {"type": "integer"}
+        }
+      },
+      "LeaderboardResponse": {
+        "type": "object",
+        "properties": {
+          "league_id": {"type": "string"},
+          "leaderboard": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardEntry"
+            }
+          }
+        }
+      }
+    }
+  }
+}

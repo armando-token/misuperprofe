@@ -13,7 +13,12 @@ from typing import Optional, List
 from app.db.session import get_session
 from app.models.adaptive import UserProgress, AchievementsLog, Streak
 from app.tools.redis_utils import get_leaderboard, get_user_rank_in_leaderboard
-from app.api.log import generar_user_id_hash
+import hashlib
+
+def _generar_user_id_hash(user_id: str) -> str:
+    """Genera un hash SHA256 para el user_id."""
+    return hashlib.sha256(user_id.encode('utf-8')).hexdigest()
+
 from app.config import settings
 
 router = APIRouter(prefix="/achievements", tags=["achievements"])
@@ -65,7 +70,7 @@ async def get_user_achievements(
     verify_bearer_token(request)
     
     try:
-        user_id_hash = generar_user_id_hash(user_id)
+        user_id_hash = _generar_user_id_hash(user_id)
         
         # Obtener progreso del usuario
         progress_result = await db.execute(
@@ -123,7 +128,7 @@ async def unlock_achievement(
     verify_bearer_token(request)
     
     try:
-        user_id_hash = generar_user_id_hash(data.user_id)
+        user_id_hash = _generar_user_id_hash(data.user_id)
         
         # Verificar si el logro ya existe
         existing_achievement = await db.execute(
@@ -245,7 +250,7 @@ async def check_achievements(
     verify_bearer_token(request)
     
     try:
-        user_id_hash = generar_user_id_hash(user_id)
+        user_id_hash = _generar_user_id_hash(user_id)
         
         # Obtener estadísticas del usuario
         from app.api.log import user_stats

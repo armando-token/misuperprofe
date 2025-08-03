@@ -1,6 +1,13 @@
-from enum import Enum
+import enum
 
-class MisuperprofeRole(str, Enum):
-    ALUMNO = "alumno"
-    PROFESOR = "profesor"
-    ADMIN_ACADEMIA = "admin_academia" 
+class MisuperprofeRole(str, enum.Enum):
+    STUDENT = "student"
+    PROFESSOR = "professor"
+    ADMIN = "admin"
+
+class AreaEnum(str, enum.Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E" 

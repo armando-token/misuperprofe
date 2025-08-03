@@ -15,6 +15,8 @@ from app.db.session import get_session
 from app.models.curso import Curso
 from app.models.capitulo import Capitulo
 from app.models.adaptive import UserProgress, ProgressUnit, Attempt
+from app.models.external_user_map import ExternalUserMap
+from app.models.role_enums import AreaEnum, MisuperprofeRole
 from app.services.progress_report_service import ProgressReportService
 from app.schemas.dynamic_schemas import UserProgressResponse, UserProgressData, ProgressByCourse
 
@@ -22,7 +24,7 @@ from app.schemas.dynamic_schemas import UserProgressResponse, UserProgressData, 
 logger = logging.getLogger(__name__)
 dynamic_router = APIRouter()
 
-@dynamic_router.post("/api/v1/dynamic")
+@dynamic_router.post("/dynamic")
 async def dynamic_endpoint(
     request: Request,
     payload: Dict[str, Any] = Body(...),
@@ -59,11 +61,16 @@ async def dynamic_endpoint(
             return await _handle_explain(payload, session)
         elif action == "help":
             return await _handle_help()
+        elif action == "set_user_area":
+            return await _handle_set_user_area(payload, session)
         else:
             raise HTTPException(status_code=400, detail=f"Acción '{action}' no soportada")
     
     except Exception as e:
         logger.error(f"❌ [DYNAMIC] Error en acción '{action}': {str(e)}")
+        # Imprimir traceback para depuración
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
 async def _handle_get_courses(session: AsyncSession) -> Dict[str, Any]:
@@ -341,4 +348,44 @@ async def _handle_help() -> Dict[str, Any]:
     }
     
     logger.info(f"✅ [DYNAMIC] Ayuda mostrada: {response}")
-    return response 
+    return response
+
+async def _handle_set_user_area(payload: Dict[str, Any], session: AsyncSession) -> Dict[str, Any]:
+    """Maneja la acción set_user_area"""
+    user_id = payload.get("user_id")
+    area = payload.get("area")
+
+    if not user_id or not area:
+        raise HTTPException(status_code=400, detail="Los campos 'user_id' y 'area' son requeridos")
+
+    if area not in [item.value for item in AreaEnum]:
+        raise HTTPException(status_code=400, detail=f"Área '{area}' no es válida. Las áreas válidas son: {[item.value for item in AreaEnum]}")
+
+    # Buscar si el usuario ya existe
+    stmt = select(ExternalUserMap).where(ExternalUserMap.external_user_identifier == user_id)
+    result = await session.execute(stmt)
+    user_map_entry = result.scalars().first()
+
+    if user_map_entry:
+        # Si existe, actualiza el área
+        logger.info(f"Usuario '{user_id}' encontrado. Actualizando área a '{area}'.")
+        user_map_entry.area = AreaEnum(area)
+    else:
+        # Si no existe, crea un nuevo registro
+        logger.info(f"Usuario '{user_id}' no encontrado. Creando nuevo registro con área '{area}'.")
+        user_map_entry = ExternalUserMap(
+            external_user_identifier=user_id,
+            area=AreaEnum(area),
+            assigned_misuperprofe_role=MisuperprofeRole.STUDENT
+        )
+    
+    session.add(user_map_entry)
+    await session.commit()
+    await session.refresh(user_map_entry)
+
+    response = {
+        "success": True,
+        "message": f"Área del usuario {user_id} establecida a {area} exitosamente."
+    }
+    logger.info(f"✅ [DYNAMIC] Área procesada: {response}")
+    return response

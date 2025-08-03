@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLAlchemyEnum
 from sqlalchemy.sql import func
 
 from app.models.base import Base
-from app.models.role_enums import MisuperprofeRole
+from app.models.role_enums import MisuperprofeRole, AreaEnum
 # Asumimos que UserProgress está en app.models.user_progress y tiene un campo user_id_hash
 # from app.models.user_progress import UserProgress # Se podría necesitar para la relación, pero no para la FK directa si es string
 
@@ -18,6 +18,7 @@ class ExternalUserMap(Base):
     internal_user_id_hash = Column(String, unique=True, nullable=True, index=True)
     
     assigned_misuperprofe_role = Column(SQLAlchemyEnum(MisuperprofeRole, name="misuperproferole", create_type=False), nullable=False)
+    area = Column(SQLAlchemyEnum(AreaEnum, name="areaenum", create_type=False), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

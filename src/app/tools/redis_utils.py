@@ -94,7 +94,7 @@ def clear_queues(user_id, session_id):
 
 # Funciones para leaderboard semanal
 
-def add_xp_leaderboard(base_league_id: str, user_id: str, xp_increment: int):
+async def add_xp_leaderboard(base_league_id: str, user_id: str, xp_increment: int):
     if not redis_client or xp_increment == 0: # No hacer nada si no hay cliente o no hay XP que añadir
         return
     key = _get_current_weekly_leaderboard_key(base_league_id)

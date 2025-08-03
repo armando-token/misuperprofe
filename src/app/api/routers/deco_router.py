@@ -15,13 +15,14 @@ logger = logging.getLogger(__name__)
 from app.db.session import get_session as get_db
 from app.services.deco.deco_engine import DECOEngine
 from app.schemas.deco.deco_schemas import (
-    DECOQuestionRequest, DECOTheoryResponse, DECOAnswerRequest, 
-    DECOAnswerResponse,
+    DECOQuestionRequest, DECOAnswerRequest, DECOAnswerResponse,
     DECOProgressRequest, DECOProgressResponse, DECORecommendationRequest,
     DECORecommendationResponse
 )
 from app.models.curso import Curso
 from app.models.capitulo import Capitulo
+from app.models.external_user_map import ExternalUserMap
+from app.services.pattern_service import get_pattern_service
 from sqlalchemy import select, func
 from app.services.spaced_repetition_logic import update_spaced_repetition_for_item
 from app.models.adaptive import Attempt, SpacedRepetition
@@ -31,51 +32,63 @@ from app.config import settings
 # Instancia del motor DECO
 deco_engine = DECOEngine()
 
-# Funciones mock para desarrollo
-async def award_points(user_id: str, action: str, points: int):
-    """Función mock para otorgar puntos"""
-    print(f"Mock: Otorgando {points} puntos a {user_id} por {action}")
-    return True
-
-async def check_achievements(user_id: str, db):
-    """Función mock para verificar logros"""
-    print(f"Mock: Verificando logros para {user_id}")
-    return True
+from app.tools.redis_utils import add_xp_leaderboard
 
 router = APIRouter(prefix="/deco", tags=["DECO - Destrezas Cognitivas"])
 
 
-@router.post("/question", response_model=DECOTheoryResponse)
+@router.post("/question")
 async def get_deco_question(
     request: DECOQuestionRequest,
     db: Session = Depends(get_db)
 ):
     """
-    Genera una pregunta DECO usando el motor HÍBRIDO.
-    Requiere un `chapter_id` para buscar contenido real en la base de datos.
-    Si el contenido no se encuentra, devuelve un error 404.
+    Prepara la "receta" para que el Custom GPT genere una pregunta DECO.
+    Busca el área del usuario, encuentra el patrón de estilo correspondiente
+    y lo combina con el extracto de teoría del capítulo solicitado.
     """
-    logger.info(f"Solicitud DECO Híbrida recibida: {request.dict()}")
+    logger.info(f"Solicitud de receta DECO recibida: {request.dict()}")
 
     if request.chapter_id is None:
-        raise HTTPException(
-            status_code=400,
-            detail="El campo 'chapter_id' es obligatorio para generar una pregunta."
-        )
+        raise HTTPException(status_code=400, detail="El campo 'chapter_id' es obligatorio.")
+    if not request.user_id:
+        raise HTTPException(status_code=400, detail="El campo 'user_id' es obligatorio.")
 
-    # Buscar curso por el 'area' proporcionado
+    # 1. Buscar el área del usuario y verificar que esté definida
+    user_map_result = await db.execute(
+        select(ExternalUserMap).where(ExternalUserMap.external_user_identifier == request.user_id)
+    )
+    user_map = user_map_result.scalars().first()
+    
+    if not user_map:
+        # Si no existe, lo creamos con el área proporcionada (si existe) o nula.
+        # Esto permite que el flujo continúe y luego se le pida al usuario que confirme su área.
+        logger.warning(f"Usuario '{request.user_id}' no encontrado. Creando un registro temporal.")
+        user_map = ExternalUserMap(
+            external_user_identifier=request.user_id,
+            assigned_misuperprofe_role='student' # Rol por defecto
+        )
+        db.add(user_map)
+        await db.commit()
+        await db.refresh(user_map)
+
+    if not user_map.area:
+        logger.error(f"PRECONDICIÓN FALLIDA: Usuario '{request.user_id}' no tiene un área definida.")
+        raise HTTPException(
+            status_code=412,
+            detail="El área del usuario no está definida. Por favor, primero pregunta al usuario a qué área pertenece (A, B, C, D o E) y usa la acción 'set_user_area' para establecerla."
+        )
+    
+    user_area = user_map.area.value
+
+    # 2. Buscar curso y capítulo (la materia es el nombre del curso)
     curso_result = await db.execute(
-        select(Curso).where(func.lower(Curso.nombre).ilike(f"%{request.area.lower()}%"))
+        select(Curso).where(Curso.nombre.ilike(f"%{request.area}%"))
     )
     curso = curso_result.scalars().first()
-
     if not curso:
-        raise HTTPException(
-            status_code=404,
-            detail=f"El curso '{request.area}' no fue encontrado."
-        )
+        raise HTTPException(status_code=404, detail=f"El curso '{request.area}' no fue encontrado.")
 
-    # Buscar capítulo por número de orden (chapter_id)
     capitulo_result = await db.execute(
         select(Capitulo).where(
             Capitulo.curso_id == curso.id,
@@ -83,32 +96,34 @@ async def get_deco_question(
         )
     )
     capitulo = capitulo_result.scalars().first()
-
     if not capitulo:
-        raise HTTPException(
-            status_code=404,
-            detail=f"El capítulo con orden {request.chapter_id} no fue encontrado en el curso '{request.area}'."
-        )
-    
-    logger.info(f"Capítulo encontrado: '{capitulo.titulo}'. Procediendo a extracción de contenido.")
-    content = capitulo.contenido_md or ""
-    
-    question_data = deco_engine.create_deco_question_from_content(
-        content=content,
-        topic=capitulo.titulo,
-        cognitive_skill=request.cognitive_skill,
-        chapter_id=capitulo.id,
-        course_name=curso.nombre
-    )
+        raise HTTPException(status_code=404, detail=f"El capítulo con orden {request.chapter_id} no fue encontrado en el curso '{request.area}'.")
 
-    if not question_data:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No se pudo preparar el contenido del capítulo '{capitulo.titulo}' para la generación de preguntas."
-        )
+    # 3. Obtener el patrón DECO
+    pattern_service = get_pattern_service()
+    subject_name = curso.nombre.capitalize()
+    logger.info(f"Buscando patrón DECO con Area='{user_area}' y Subject='{subject_name}'")
+    deco_pattern = pattern_service.get_pattern(user_area, subject_name)
 
-    # La respuesta ya no es una pregunta, sino la instrucción para generarla
-    return question_data
+    # 4. Construir la respuesta ("receta")
+    theory_extract = capitulo.contenido_md or "No hay contenido disponible para este capítulo."
+    
+    receta_response = {
+        "theory_extract": theory_extract,
+        "deco_pattern": {
+            "user_area": user_area,
+            "subject": subject_name,
+            **deco_pattern
+        },
+        "metadata": {
+            "course_id": curso.id,
+            "chapter_id": capitulo.id,
+            "chapter_title": capitulo.titulo
+        }
+    }
+
+    logger.info(f"Receta DECO preparada para el usuario '{request.user_id}': Area={user_area}, Materia={subject_name}")
+    return receta_response
 
 
 @router.post("/answer", response_model=DECOAnswerResponse)
@@ -129,8 +144,8 @@ async def submit_deco_answer(
         points_earned = 10 if is_correct else 2
 
         # Otorgar puntos y verificar logros
-        await award_points(request.user_id, "deco_answer", points_earned)
-        await check_achievements(request.user_id, db)
+        await add_xp_leaderboard('global_weekly', request.user_id, points_earned)
+        # await check_achievements(request.user_id, db) # La verificación de logros se puede añadir aquí en el futuro
         
         # Guardar intento en base de datos usando datos del request
         attempt = Attempt(
@@ -171,7 +186,7 @@ async def get_deco_progress(
     user_id: str = Query(..., description="ID del usuario"),
     area: Optional[str] = Query(None, description="Área específica"),
     topic: Optional[str] = Query(None, description="Tema específico"),
-    days: int = Query(30, description="Días hacia atrás"),
+    days: int = Query(9999, description="Días hacia atrás"),
     db: Session = Depends(get_db)
 ):
     """

@@ -12,12 +12,12 @@ class DECOQuestionRequest(BaseModel):
     """Schema para solicitar una pregunta DECO"""
     model_config = ConfigDict(from_attributes=True)
     
-    user_id: str = Field(..., description="ID del usuario")
-    area: str = Field(..., description="Área académica (matematicas, fisica, quimica, etc.)")
-    topic: str = Field(..., description="Tema específico")
+    user_id: str = Field(..., description="ID único del usuario")
+    area: str = Field(..., description="Área académica (ej: 'Ciencias', 'Letras')")
+    topic: Optional[str] = Field(None, description="Tema específico de la pregunta (opcional)")
     difficulty: int = Field(default=2, ge=1, le=3, description="Nivel de dificultad (1-3)")
     cognitive_skill: Optional[str] = Field(None, description="Habilidad cognitiva específica")
-    chapter_id: Optional[int] = Field(None, description="ID del capítulo para extraer contenido")
+    chapter_id: Optional[int] = Field(None, description="ID del capítulo para usar como contexto (opcional, pero recomendado)")
 
 
 class DECOTheoryResponse(BaseModel):

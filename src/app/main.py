@@ -8,20 +8,20 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.api.routers.agent_router import agent_router as agent_router_instance
-from app.api.routers.chat_business_router import chat_business_router
-from app.api.log import log_router
-from app.api.lesson import router as lesson_router
-from app.api.simple_lesson import router as simple_lesson_router
+# from app.api.routers.chat_business_router import chat_business_router
+# from app.api.lesson import router as lesson_router
+# from app.api.simple_lesson import router as simple_lesson_router
 from app.api.achievements import router as achievements_router
-from app.api.course import router as course_router
-from app.api.analytics import analytics_router
+# from app.api.course import router as course_router
+# from app.api.analytics import analytics_router
 from app.api.routers.deco_router import router as deco_router
-from app.api.routers.its_router import router as its_router
-from app.api.routers.phase3_router import router as phase3_router
+# from app.api.routers.its_router import router as its_router
+# from app.api.routers.phase3_router import router as phase3_router
 from app.api.routers.dynamic_router import dynamic_router
 from app.api.routers.ask_router import ask_router
 from app.core.mcp import mcp
 from app.tools.semantic_search_optimized import get_semantic_search
+from app.services.pattern_service import get_pattern_service
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +29,12 @@ async def lifespan(app: FastAPI):
     logging.info("Iniciando la aplicación y el motor semántico...")
     await get_semantic_search()
     logging.info("Motor semántico inicializado y listo.")
+    
+    # Cargar patrones DECO
+    logging.info("Cargando patrones DECO...")
+    get_pattern_service().load_patterns()
+    logging.info("Patrones DECO cargados y listos.")
+
     yield
     # Lógica de apagado (si es necesaria)
     logging.info("Apagando la aplicación.")
@@ -52,22 +58,21 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 app.include_router(agent_router_instance, prefix=settings.API_V1_STR)
-app.include_router(chat_business_router, prefix=settings.API_V1_STR)
-app.include_router(lesson_router, prefix=settings.API_V1_STR)
-app.include_router(simple_lesson_router, prefix=settings.API_V1_STR)
-app.include_router(achievements_router, prefix=settings.API_V1_STR)
-app.include_router(course_router, prefix=settings.API_V1_STR)
-app.include_router(analytics_router, prefix=settings.API_V1_STR, tags=["Analytics"])
+# app.include_router(chat_business_router, prefix=settings.API_V1_STR)
+# app.include_router(lesson_router, prefix=settings.API_V1_STR)
+# app.include_router(simple_lesson_router, prefix=settings.API_V1_STR)
+app.include_router(achievements_router, prefix=settings.API_V1_STR, tags=["Achievements"])
+# app.include_router(course_router, prefix=settings.API_V1_STR)
+# app.include_router(analytics_router, prefix=settings.API_V1_STR, tags=["Analytics"])
 app.include_router(deco_router, prefix=settings.API_V1_STR, tags=["DECO"])
-app.include_router(its_router, prefix=settings.API_V1_STR, tags=["ITS"])
-app.include_router(phase3_router, prefix=settings.API_V1_STR, tags=["Phase3"])
-app.include_router(dynamic_router, tags=["Dynamic"])
+# app.include_router(its_router, prefix=settings.API_V1_STR, tags=["ITS"])
+# app.include_router(phase3_router, prefix=settings.API_V1_STR, tags=["Phase3"])
+app.include_router(dynamic_router, prefix=settings.API_V1_STR, tags=["Dynamic"])
 app.include_router(ask_router, prefix=settings.API_V1_STR, tags=["Semantic Search"])
 app.include_router(mcp.router)
-app.include_router(log_router, prefix=settings.API_V1_STR, tags=["Logging"])
 
 # Importar explícitamente los módulos de tools para registrar las tools en MCP
-from app.tools import recomendador, graficos, calificar, cache_optimizer, ux_enhancer
+# from app.tools import recomendador, graficos, calificar, cache_optimizer, ux_enhancer
 
 # Configuración explícita de logging para imprimir en consola
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -79,92 +84,7 @@ logging.info('[LOG MCP] Backend MCP Server arrancando...')
 def health_check():
     return {"status": "ok", "service": "Agent Service"}
 
-@app.get(f"{settings.API_V1_STR}/courses")
-def get_courses(request: Request):
-    """
-    Endpoint para obtener la lista de cursos disponibles
-    """
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    # Log detallado de la petición
-    logger.info("🔍 [COURSES] Petición recibida en /courses")
-    logger.info("🔍 [COURSES] Headers recibidos: %s", dict(request.headers))
-    logger.info("🔍 [COURSES] Método: %s", request.method)
-    logger.info("🔍 [COURSES] URL: %s", request.url)
-    
-    try:
-        courses = [
-            {
-                "id": "biologia",
-                "name": "Biología",
-                "description": "Estudio de los seres vivos y sus procesos",
-                "chapters": 5
-            },
-            {
-                "id": "historia",
-                "name": "Historia",
-                "description": "Estudio del pasado humano y sus eventos",
-                "chapters": 4
-            },
-            {
-                "id": "lenguaje",
-                "name": "Lenguaje",
-                "description": "Comunicación y expresión escrita",
-                "chapters": 3
-            },
-            {
-                "id": "geografia",
-                "name": "Geografía",
-                "description": "Estudio de la Tierra y sus características",
-                "chapters": 4
-            },
-            {
-                "id": "filosofia",
-                "name": "Filosofía",
-                "description": "Reflexión sobre la existencia y el conocimiento",
-                "chapters": 3
-            },
-            {
-                "id": "literatura",
-                "name": "Literatura",
-                "description": "Arte de la expresión escrita",
-                "chapters": 4
-            },
-            {
-                "id": "economia",
-                "name": "Economía",
-                "description": "Estudio de la producción y distribución de recursos",
-                "chapters": 3
-            },
-            {
-                "id": "civica",
-                "name": "Cívica",
-                "description": "Derechos y deberes ciudadanos",
-                "chapters": 3
-            },
-            {
-                "id": "psicologia",
-                "name": "Psicología",
-                "description": "Estudio del comportamiento humano",
-                "chapters": 4
-            },
-            {
-                "id": "cultura_general",
-                "name": "Cultura General",
-                "description": "Conocimientos generales y actualidad",
-                "chapters": 5
-            }
-        ]
-        
-        response = {"courses": courses, "total": len(courses)}
-        logger.info("✅ [COURSES] Respuesta exitosa: %s", response)
-        return response
-        
-    except Exception as e:
-        logger.error("❌ [COURSES] Error en /courses: %s", str(e))
-        logger.error("❌ [COURSES] Traceback: %s", traceback.format_exc())
-        raise
+
 
 @app.get("/copilotkit")
 @app.get("/copilotkit/")
@@ -188,7 +108,7 @@ async def copilotkit_discovery():
             "description": tool.get("description", ""),
             "parameters": filtered_params,
             "path": tool.get("path", ""),
-            "method": tool.get("method", "POST"),
+            "method": "POST",
         })
     if actions is None:
         actions = []

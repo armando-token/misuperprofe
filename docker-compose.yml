@@ -54,7 +54,7 @@ services:
       - ENVIRONMENT=development
       - APP_NAME=MySuperProfeAPI
       - API_V1_STR=/api/v1
-      - API_KEY=${API_KEY}
+      - API_KEY=your_api_key_here
       - GOOGLE_API_KEY=your_google_api_key_here
       - LANGSMITH_API_KEY=your_langsmith_api_key_here
       - OPENAI_API_KEY=your_openai_api_key_here
@@ -63,12 +63,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: sh -c "cd /app/src && alembic -c /app/alembic.ini upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "cd /app/src && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     volumes:
       - ./src:/app/src
       - ./content:/app/content
       - ./scripts:/app/scripts
       - ./logs:/app/logs  # Para logs persistentes
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
     restart: unless-stopped  # Reinicio automático
 
   caddy:

@@ -259,7 +259,7 @@ cd misuperprofe
 ### Step 2: Configure Environment Variables
 Copy the environment template and configure your secrets:
 ```bash
-cp env.example .env
+cp .env.example .env
 ```
 
 Ensure critical variables in `.env` match your configuration:

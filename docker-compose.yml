@@ -12,13 +12,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backups:/backups  # Para backups automáticos
+      - ./backups:/backups  # For automated database backups
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mysuper_user} -d ${POSTGRES_DB:-mysuper_bd}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped  # Reinicio automático
+    restart: unless-stopped  # Automatic restart policy
 
   redis:
     image: redis:7-alpine
@@ -27,14 +27,14 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-      - ./redis_backups:/backups  # Para backups de Redis
+      - ./redis_backups:/backups  # For Redis snapshots/backups
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped  # Reinicio automático
-    command: redis-server --appendonly yes  # Habilitar persistencia AOF
+    restart: unless-stopped  # Automatic restart policy
+    command: redis-server --appendonly yes  # Enable AOF persistence
 
   misuperapi:
     build: .
@@ -70,10 +70,10 @@ services:
       - ./src:/app/src
       - ./content:/app/content
       - ./scripts:/app/scripts
-      - ./logs:/app/logs  # Para logs persistentes
+      - ./logs:/app/logs  # For persistent logging
       - ./alembic:/app/alembic
       - ./alembic.ini:/app/alembic.ini
-    restart: unless-stopped  # Reinicio automático
+    restart: unless-stopped  # Automatic restart policy
 
   caddy:
     image: caddy:2.7.6

@@ -244,7 +244,7 @@
 - Protegido por autenticación con API_KEY.
 - Ejemplo de uso:
   ```bash
-  curl -X GET 'http://localhost:8000/recomendar_plan_estudio?user_id=demo' -H 'Authorization: Bearer your_api_key_here'
+  curl -X GET 'http://localhost:8000/recomendar_plan_estudio?user_id=demo' -H 'Authorization: Bearer <API_KEY>'
   ```
 - Si el usuario no tiene datos, devuelve una lista vacía de recomendaciones.
 
@@ -491,7 +491,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -840,7 +840,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -1189,7 +1189,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -1538,7 +1538,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -1887,7 +1887,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -2236,7 +2236,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -2585,7 +2585,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -2934,7 +2934,7 @@ curl -X GET "http://localhost:8000/get_question?course=Biología&topic=célula" 
 
   ```bash
   curl -k -X GET "https://copilotero.com/get_question?course=biologia" \
-    -H "Authorization: Bearer your_api_key_here" \
+    -H "Authorization: Bearer <API_KEY>" \
     -H "accept: application/json"
   ```
   Respuesta:
@@ -3536,7 +3536,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ntid_user;
     - `/api/lesson/lesson/answer` falla con `AttributeError: 'LessonSession' object has no attribute 'xp'` (el modelo define `lesson_xp`, pero el código usa `xp`).
     - `/api/lesson/lesson/complete` falla con `Error en la transacción de cierre de lección: 'Select' object has no attribute 'count'` (uso incorrecto de `.count()` en SQLAlchemy async).
     - `/api/lesson/lesson/next_item`, `/api/lesson/lesson/analytics/user_dashboard` y `/api/lesson/lesson/analytics/progress_over_time` fallan con `Internal Server Error` (errores 500 genéricos).
-- Se confirmó que el token de autenticación funciona y que los endpoints requieren el header `Authorization: Bearer your_api_key_here`.
+- Se confirmó que el token de autenticación funciona y que los endpoints requieren el header `Authorization: Bearer <API_KEY>`.
 - El modelo `LessonSession` en `app/models/adaptive.py` define el campo `lesson_xp`, pero el código y queries usan `xp`, causando el error.
 - Se identificó el uso incorrecto de `.count()` sobre objetos `Select` en SQLAlchemy async, y posibles errores de await sobre `None` en la lógica de respuestas.
 

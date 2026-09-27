@@ -4,15 +4,15 @@ services:
     container_name: misuperpostgre
     restart: always
     environment:
-      POSTGRES_USER: misuper_usuario
-      POSTGRES_PASSWORD: postgres_password
-      POSTGRES_DB: misuper_bd
+      POSTGRES_USER: ${POSTGRES_USER:-misuper_usuario}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-misuper_bd}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U misuper_usuario -d misuper_bd -q"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-misuper_usuario} -d ${POSTGRES_DB:-misuper_bd} -q"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -36,12 +36,7 @@ services:
     container_name: misuperapi
     restart: always
     command: >
-      sh -c "echo '--- Variables de Entorno en Contenedor ---' &&
-             echo \"DATABASE_URL (de .env es POSTGRES_DATABASE_URL): $POSTGRES_DATABASE_URL\" &&
-             echo \"REDIS_URL: $REDIS_URL\" &&
-             echo \"API_KEY: $API_KEY\" &&
-             echo '--- Fin Variables de Entorno ---' &&
-             sleep 10 &&
+      sh -c "sleep 10 &&
              poetry run alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
@@ -64,12 +59,12 @@ services:
     ports:
       - "8081:80" # Puerto 8081 del host mapeado al puerto 80 del contenedor WordPress
     environment:
-      WORDPRESS_DB_HOST: db_wordpress_service:3306
-      WORDPRESS_DB_USER: wp_user
-      WORDPRESS_DB_PASSWORD: wp_password
-      WORDPRESS_DB_NAME: wordpress_db
-      WORDPRESS_SITE_URL: "https://misuperprofe.com"
-      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-db_wordpress_service:3306}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wp_user}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp_password}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress_db}
+      WORDPRESS_SITE_URL: ${WORDPRESS_SITE_URL:-https://misuperprofe.com}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX:-wp_}
     volumes:
       - wordpress_data:/var/www/html
       # - ./wp-content/plugins:/var/www/html/wp-content/plugins # LÍNEA COMENTADA/ELIMINADA
@@ -82,9 +77,9 @@ services:
     container_name: mariadb_misuperprofe
     restart: always
     environment:
-      MYSQL_DATABASE: wordpress_db
-      MYSQL_USER: wp_user
-      MYSQL_PASSWORD: wp_password
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME:-wordpress_db}
+      MYSQL_USER: ${WORDPRESS_DB_USER:-wp_user}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp_password}
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - mariadb_data:/var/lib/mysql

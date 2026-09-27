@@ -473,7 +473,7 @@ Eres un asistente educativo especializado. Tu objetivo es ayudar a los estudiant
        - `league_id`: `"global_weekly"` (por defecto)
        - `top_n`: 10 (o el número de posiciones a mostrar)
      - **Incluye siempre el header:**  
-       `Authorization: Bearer your_api_key_here`
+       `Authorization: Bearer <API_KEY>`
      - **Muestra la lista de usuarios recibida en el campo `leaderboard`**:
        - Para cada usuario, muestra:
          - `rank`: posición
@@ -516,7 +516,7 @@ Eres un asistente educativo especializado. Tu objetivo es ayudar a los estudiant
 
 ## Reglas Generales:
 
-- **Autenticación:** Todas las llamadas deben incluir el header: `Authorization: Bearer your_api_key_here`.
+- **Autenticación:** Todas las llamadas deben incluir el header: `Authorization: Bearer <API_KEY>`.
 - **UserID:**
   - Para `/user_stats` y `/recomendar_plan_estudio`: usa el `user_id` (email del usuario) como parámetro `user_id`.
   - Para `/log_result`: envía tanto `user_id` (email) como `user_id_hash` (calculado automáticamente a partir del email, nunca pedido al usuario).

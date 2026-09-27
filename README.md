@@ -44,11 +44,11 @@ La API está construida con FastAPI, Uvicorn, SQLAlchemy, Alembic para migracion
     ```
 
 2.  **Configurar variables de entorno:**
-    Copie `env.example` a `.env` y modifíquelo con su configuración. Asegúrese de que las siguientes variables estén correctamente configuradas:
+    Copie `.env.example` a `.env` y modifíquelo con su configuración. Asegúrese de que las siguientes variables estén correctamente configuradas:
     ```dotenv
     # Base de Datos (usadas por la aplicación y Alembic)
-    DATABASE_URL=postgresql+asyncpg://misuper_usuario:postgres_password@db:5432/misuper_bd
-    ALEMBIC_DATABASE_URL=postgresql+psycopg2://misuper_usuario:postgres_password@db:5432/misuper_bd # Para Alembic
+    DATABASE_URL=postgresql+asyncpg://misuper_usuario:tu_password_seguro_aqui@db:5432/misuper_bd
+    ALEMBIC_DATABASE_URL=postgresql+psycopg2://misuper_usuario:tu_password_seguro_aqui@db:5432/misuper_bd # Para Alembic
 
     # Redis
     REDIS_URL=redis://redis:6379/0
@@ -66,9 +66,9 @@ La API está construida con FastAPI, Uvicorn, SQLAlchemy, Alembic para migracion
 
     LOG_LEVEL=INFO # DEBUG, INFO, WARNING, ERROR
 
-    # Estas son usadas por el servicio \'db\' en docker-compose.yml para inicializar la BD
+    # Estas son usadas por el servicio 'db' en docker-compose.yml para inicializar la BD
     POSTGRES_USER=misuper_usuario
-    POSTGRES_PASSWORD=postgres_password # Debe coincidir con la de DATABASE_URL
+    POSTGRES_PASSWORD=tu_password_seguro_aqui # Debe coincidir con la de DATABASE_URL
     POSTGRES_DB=misuper_bd         # Debe coincidir con la de DATABASE_URL
     ```
     **Nota:** `JWT_OAUTH_SECRET_KEY` es crucial para la seguridad de los tokens emitidos a los usuarios de ChatGPT Team.

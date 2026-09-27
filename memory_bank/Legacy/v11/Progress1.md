@@ -97,7 +97,7 @@
     - Reiniciar Docker no solucionó el problema.
     - Se ejecutó `docker-compose down --remove-orphans` para limpiar el estado.
     - Los logs del contenedor `web` (misuperapi) mostraron un error `FATAL: password authentication failed for user "misuper_usuario"`.
-    - Se corrigió la variable `POSTGRES_PASSWORD` en `docker-compose.yml` de `TuContraseñaSegura` a la contraseña correcta (`postgres_password`).
+    - Se corrigió la variable `POSTGRES_PASSWORD` en `docker-compose.yml` de `TuContraseñaSegura` a la contraseña correcta (`<POSTGRES_PASSWORD>`).
     - El error `KeyError: 'ContainerConfig'` persistió.
     - **Actualización a Docker Compose V2:**
         - Se desinstaló Docker Compose V1 (`sudo apt remove -y docker-compose` y `sudo apt autoremove -y`).
@@ -212,7 +212,7 @@
 
 #### 11.3 Verificación del Endpoint de Login y Flujo de Autenticación
 - Se revisó `app/api/lesson.py` (endpoint `record_llm_lesson_result`) y `app/main.py` (endpoint `start_session`).
-- **Autenticación:** Se utiliza una `API_KEY` estática (`your_api_key_here` del archivo `.env`) enviada como Bearer Token para proteger `record_llm_lesson_result`. El endpoint `start_session` no parece tener autenticación (lo cual es esperado si es para iniciar sesión de un usuario final, que luego podría usar un token de sesión para otras operaciones).
+- **Autenticación:** Se utiliza una `API_KEY` estática (`<API_KEY>` del archivo `.env`) enviada como Bearer Token para proteger `record_llm_lesson_result`. El endpoint `start_session` no parece tener autenticación (lo cual es esperado si es para iniciar sesión de un usuario final, que luego podría usar un token de sesión para otras operaciones).
 
 #### 11.4 Investigación del Uso de Redis
 - **Búsqueda en el código:** `grep -r -i "redis" .`

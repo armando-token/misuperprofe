@@ -1,15 +1,47 @@
-# Archivos de entorno y sensibles
+# ==============================================================================
+# Environment and Secrets
+# ==============================================================================
 .env
+.env*
 .env.*
-!/.env.example
-.vscode/
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.pgpass
 
-# Archivos de caché y logs
-.cache/
-.npm/
-.pm2/
-.local/
-.cursor-server/
+# ==============================================================================
+# Database Dumps, State Files and Backups
+# ==============================================================================
+backups/
+backups_local/
+redis_backups/
+*.sql
+*.rdb
+*.dump
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.bak
+*.backup
+*.save
+*.db
+*.sqlite
+*.sqlite3
+
+# ==============================================================================
+# Shell History, Logs and System Artifacts
+# ==============================================================================
+.bash_history*
+.bash_history
+.bashrc
+.bash_logout
+.profile
+.wget-hsts
 *.log
 logs/
 npm-debug.log*
@@ -18,33 +50,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 nohup.out
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
-# Copias de seguridad y artefactos de compresión
-*.zip
-*.tar
-*.tar.gz
-*.tgz
-*.rar
-
-# Dependencias de Node
-node_modules/
-/frontend-chat/node_modules/
-/copilot-runtime/node_modules/
-/copilotkit-starter/node_modules/
-dist/
-build/
-coverage/
-.pnpm-store/
-
-# Dependencias y artefactos de Python
+# ==============================================================================
+# Python Artifacts & Virtual Environments
+# ==============================================================================
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 .Python
-/app/__pycache__/
-/app/api/__pycache__/
-/app/agents_langgraph_example/__pycache__/
 build/
 develop-eggs/
 dist/
@@ -61,75 +83,59 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-# Entorno virtual de Python
 .venv/
 venv/
 ENV/
 env.bak/
 venv.bak/
+.pyenv/
 
-# Poetry
-poetry.lock
-.poetry
-
-# Docker
-.docker/
-.dockerignore
-
-# Test
+# ==============================================================================
+# Testing & Code Quality
+# ==============================================================================
 .pytest_cache/
+.coverage
+htmlcov/
+coverage/
 test-results/
+test_report.json
 
-# Sistema Operativo
-.DS_Store
-Thumbs.db
+# ==============================================================================
+# Embeddings & AI Cache
+# ==============================================================================
+embeddings_cache/
+*.npy
+*.bin
+*.pkl
 
-# Archivos de sistema
-desktop.ini
+# ==============================================================================
+# Node & Frontend Dependencies
+# ==============================================================================
+node_modules/
+/frontend-chat/node_modules/
+/chat-frontend-react/node_modules/
+/copilot-runtime/node_modules/
+/copilotkit-starter/node_modules/
+.pnpm-store/
+.nvm/
 
-# Archivos de IDEs
+# ==============================================================================
+# IDEs and Tools
+# ==============================================================================
+.vscode/
 .idea/
 *.swp
 *.swo
+*~
 *.sublime-project
 *.sublime-workspace
 nbproject/
-
-# Otros
-*.tar.gz
-backup.tar.gz
-misuperprofe_backup/
-/copilotkit-starter/
-
-# Backups y archivos grandes
-repo_backup_*/
-backup_files/
-misuperprofe_backup_*.bundle
-embeddings_cache/
-app_old_backup_*/
-alembic_old_backup_*/
-ntid-backup*
-*.bak
-*.db
-*.sqlite
-*.git.bfg-report/
-
-# Archivos personales y de configuración del sistema
-.bash_history
-.bashrc
-.bash_logout
+.cursor-server/
+.cache/
+.npm/
+.pm2/
+.local/
 .config/
-.profile
 .ssh/
 .sudo_as_admin_successful
 session_info.json
-
-# Otros archivos temporales o de pruebas
-zivKK2ng
-codigo_backup_*.tar.gz
-ubuntu_backup_*.tar.gz
-static/backups/
-
-# Ignorar archivos de configuración sensibles
-.pgpass

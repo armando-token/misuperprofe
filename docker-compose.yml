@@ -5,16 +5,16 @@ services:
     image: postgres:15
     container_name: misuperpostgre
     environment:
-      POSTGRES_USER: mysuper_user
-      POSTGRES_PASSWORD: postgres_password
-      POSTGRES_DB: mysuper_bd
+      POSTGRES_USER: ${POSTGRES_USER:-mysuper_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-mysuper_bd}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups  # Para backups automáticos
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mysuper_user -d mysuper_bd"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mysuper_user} -d ${POSTGRES_DB:-mysuper_bd}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,23 +41,25 @@ services:
     container_name: misuperapi
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=mysuper_user
-      - POSTGRES_PASSWORD=postgres_password
-      - POSTGRES_DB=mysuper_bd
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - POSTGRES_DATABASE_URL=postgresql+psycopg2://mysuper_user:postgres_password@db:5432/mysuper_bd
-      - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET_KEY=AVerySecureKeyPleaseChangeInProduction
-      - JWT_ALGORITHM=HS256
-      - ENVIRONMENT=development
-      - APP_NAME=MySuperProfeAPI
-      - API_V1_STR=/api/v1
-      - API_KEY=your_api_key_here
-      - GOOGLE_API_KEY=your_google_api_key_here
-      - LANGSMITH_API_KEY=your_langsmith_api_key_here
-      - OPENAI_API_KEY=your_openai_api_key_here
+      - POSTGRES_USER=${POSTGRES_USER:-mysuper_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres_password}
+      - POSTGRES_DB=${POSTGRES_DB:-mysuper_bd}
+      - POSTGRES_HOST=${POSTGRES_HOST:-db}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DATABASE_URL=${POSTGRES_DATABASE_URL:-postgresql+psycopg2://${POSTGRES_USER:-mysuper_user}:${POSTGRES_PASSWORD:-postgres_password}@${POSTGRES_HOST:-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-mysuper_bd}}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - APP_NAME=${APP_NAME:-MySuperProfeAPI}
+      - API_V1_STR=${API_V1_STR:-/api/v1}
+      - API_KEY=${API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       db:
         condition: service_healthy

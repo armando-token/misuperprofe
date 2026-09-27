@@ -3,10 +3,10 @@
 # Script de backup automático para MiSuperProfe
 # Este script protege los datos durante reinicios del servidor
 
-BACKUP_DIR="/home/ubuntu/backups"
-DB_NAME="mysuper_bd"
-DB_USER="mysuper_user"
-DB_PASSWORD="postgres_password"
+BACKUP_DIR="${BACKUP_DIR:-/home/ubuntu/backups}"
+DB_NAME="${POSTGRES_DB:-mysuper_bd}"
+DB_USER="${POSTGRES_USER:-mysuper_user}"
+DB_PASSWORD="${POSTGRES_PASSWORD:-}"
 DATE=$(date +%Y%m%d_%H%M%S)
 
 echo "🔄 INICIANDO BACKUP AUTOMÁTICO - $(date)"

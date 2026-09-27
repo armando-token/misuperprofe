@@ -15,6 +15,7 @@ NC='\033[0m' # No Color
 TOTAL_TESTS=0
 PASSED_TESTS=0
 FAILED_TESTS=0
+API_KEY="${API_KEY:-}"
 
 # Función para test
 test_function() {
@@ -58,26 +59,26 @@ echo "===================================="
 
 # Test DECO question
 test_function "POST /deco/question" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.question' | grep -q ." "success"
 
 # Test DECO answer
 test_function "POST /deco/answer" "curl -X POST 'http://localhost:8000/api/v1/deco/answer' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"session_id\": \"test_session\", \"answer\": \"A\", \"question_id\": \"test_123\"}' \
   | jq -r '.feedback' | grep -q ." "success"
 
 # Test DECO areas
 test_function "GET /deco/areas" "curl -s 'http://localhost:8000/api/v1/deco/areas' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   | jq -r '.areas' | grep -q ." "success"
 
 # Test DECO cognitive skills
 test_function "GET /deco/cognitive-skills" "curl -s 'http://localhost:8000/api/v1/deco/cognitive-skills' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   | jq -r '.cognitive_skills' | grep -q ." "success"
 
 echo "📋 3. VERIFICACIÓN DE ELIMINACIÓN DE /get_question"
@@ -94,7 +95,7 @@ test_function "GET /get_question devuelve 404" "curl -s -o /dev/null -w '%{http_
 # Verificar que POST /get_question devuelve 404
 test_function "POST /get_question devuelve 404" "curl -s -o /dev/null -w '%{http_code}' \
   -X POST 'http://localhost:8000/api/v1/get_question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"course\": \"historia\"}' | grep -q '404'" "success"
 
@@ -103,26 +104,26 @@ echo "===================================="
 
 # Test courses
 test_function "GET /courses" "curl -s 'http://localhost:8000/api/v1/courses' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   | jq -r '.courses' | grep -q ." "success"
 
 # Test ask endpoint
 test_function "POST /ask" "curl -X POST 'http://localhost:8000/api/v1/ask' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"pregunta\": \"¿Qué es la fotosíntesis?\"}' \
   | jq -r '.respuesta' | grep -q ." "success"
 
 # Test log_result
 test_function "POST /log_result" "curl -X POST 'http://localhost:8000/api/v1/log_result' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"question_id\": \"test_123\", \"answer\": \"a\", \"is_correct\": true, \"course\": \"historia\", \"topic\": \"test\"}' \
   | jq -r '.status' | grep -q 'ok'" "success"
 
 # Test user_stats
 test_function "GET /user_stats" "curl -s 'http://localhost:8000/api/v1/user_stats?user_id=user@example.com' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   | jq -r '.stats' | grep -q ." "success"
 
 echo "📋 5. VERIFICACIÓN DE MOTOR HÍBRIDO"
@@ -130,14 +131,14 @@ echo "===================================="
 
 # Test content extraction
 test_function "Motor híbrido con contenido real" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2, \"chapter_id\": 155}' \
   | jq -r '.question' | grep -q ." "success"
 
 # Test fallback to context
 test_function "Motor híbrido con fallback" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.question' | grep -q ." "success"
@@ -163,13 +164,13 @@ echo "=================================="
 
 # Test tiempo de respuesta DECO
 test_function "Tiempo de respuesta DECO < 10s" "timeout 10 curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' > /dev/null" "success"
 
 # Test tiempo de respuesta /ask
 test_function "Tiempo de respuesta /ask < 5s" "timeout 5 curl -X POST 'http://localhost:8000/api/v1/ask' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"pregunta\": \"¿Qué es la fotosíntesis?\"}' > /dev/null" "success"
 
@@ -178,14 +179,14 @@ echo "==========================================="
 
 # Test formato DECO question
 test_function "Formato DECO question correcto" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.question, .alternatives.A, .alternatives.B, .alternatives.C, .alternatives.D, .correct_answer' | grep -q ." "success"
 
 # Test formato DECO answer
 test_function "Formato DECO answer correcto" "curl -X POST 'http://localhost:8000/api/v1/deco/answer' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"session_id\": \"test_session\", \"answer\": \"A\", \"question_id\": \"test_123\"}' \
   | jq -r '.is_correct, .feedback' | grep -q ." "success"
@@ -195,7 +196,7 @@ echo "============================"
 
 # Test cache DECO (segunda llamada debería ser más rápida)
 test_function "Cache DECO funcionando" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"comunicacion\", \"topic\": \"general\", \"difficulty\": 2}' > /dev/null" "success"
 

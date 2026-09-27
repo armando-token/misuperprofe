@@ -3,9 +3,9 @@
 # Script de restauración para MiSuperProfe
 # Este script restaura los datos desde un backup
 
-BACKUP_DIR="/home/ubuntu/backups"
-DB_NAME="mysuper_bd"
-DB_USER="mysuper_user"
+BACKUP_DIR="${BACKUP_DIR:-/home/ubuntu/backups}"
+DB_NAME="${POSTGRES_DB:-mysuper_bd}"
+DB_USER="${POSTGRES_USER:-mysuper_user}"
 
 echo "🔄 SCRIPT DE RESTAURACIÓN - $(date)"
 echo "=================================================="

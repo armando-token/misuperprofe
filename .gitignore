@@ -1,4 +1,61 @@
-# Python
+# ==============================================================================
+# Environment and Secrets
+# ==============================================================================
+.env
+.env*
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.pgpass
+
+# ==============================================================================
+# Database Dumps, State Files and Backups
+# ==============================================================================
+backups/
+backups_local/
+redis_backups/
+*.sql
+*.rdb
+*.dump
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.bak
+*.backup
+*.save
+*.db
+*.sqlite
+*.sqlite3
+
+# ==============================================================================
+# Shell History, Logs and System Artifacts
+# ==============================================================================
+.bash_history*
+.bash_history
+.bashrc
+.bash_logout
+.profile
+.wget-hsts
+*.log
+logs/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==============================================================================
+# Python Artifacts & Virtual Environments
+# ==============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
@@ -20,92 +77,49 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-# Virtual environments
-.env
-.venv
-env/
+.venv/
 venv/
 ENV/
 env.bak/
 venv.bak/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Logs
-*.log
-logs/
-
-# Cache
-.cache/
-*.cache
-
-# Docker
-.docker/
-
-# Node modules
-node_modules/
-.nvm/
-
-# Python environment
 .pyenv/
 
-# Local development
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Test files
-test_*.py
-*_test.py
+# ==============================================================================
+# Testing & Code Quality
+# ==============================================================================
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+test-results/
 test_report.json
 
-# Temporary files
-*.tmp
-*.temp
-
-# Backup files
-*.bak
-*.backup
-
-# System files
-.bash_history
-.bash_logout
-.config/
-.local/
-.ssh/
-.sudo_as_admin_successful
-.wget-hsts
-
-# Cursor server
-.cursor-server/
-
-# Memory files
-# memory13/ - Removed: Important project documentation
-
-# Old versions
-misuperprofev12/
-
-# Embeddings cache (large files)
+# ==============================================================================
+# Embeddings & AI Cache
+# ==============================================================================
 embeddings_cache/
 *.npy
 *.bin
 *.pkl
 
-# Poetry
-poetry.lock 
+# ==============================================================================
+# IDEs and Tools
+# ==============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+nbproject/
+.cursor-server/
+.cache/
+*.cache
+.npm/
+.pm2/
+.local/
+.config/
+.ssh/
+.sudo_as_admin_successful
+session_info.json

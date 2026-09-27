@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     
     # Base de datos (leer del .env)
     DB_USER: str = "mysuper_user"
-    DB_PASSWORD: str = "postgres_password"
+    DB_PASSWORD: str = "change_me_in_production"
     DB_NAME: str = "mysuper_bd"
     DB_HOST: str = "db"
     DB_PORT: int = 5432

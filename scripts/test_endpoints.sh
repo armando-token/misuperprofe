@@ -1,7 +1,7 @@
 #!/bin/bash
 
 API_URL="http://localhost:8000"
-API_KEY="${API_KEY:-your_api_key_here}"
+API_KEY="${API_KEY:-}"
 USER_ID="demo"
 
 RED='\033[0;31m'

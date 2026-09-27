@@ -15,6 +15,7 @@ NC='\033[0m' # No Color
 TOTAL_TESTS=0
 PASSED_TESTS=0
 FAILED_TESTS=0
+API_KEY="${API_KEY:-}"
 
 # Función para test
 test_function() {
@@ -51,21 +52,21 @@ echo "=============================================="
 
 # Test con capítulo que tiene contenido real
 test_function "Extracción de contenido del capítulo 155 (Historia)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155}' \
   | jq -r '.question' | grep -q ." "success"
 
 # Test con capítulo que tiene contenido real (Biología)
 test_function "Extracción de contenido del capítulo 1 (Biología)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"biologia\", \"topic\": \"Fotosíntesis\", \"difficulty\": 2, \"chapter_id\": 1}' \
   | jq -r '.question' | grep -q ." "success"
 
 # Test con capítulo que tiene contenido real (Lenguaje)
 test_function "Extracción de contenido del capítulo 147 (Lenguaje)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"lenguaje\", \"topic\": \"Definición del Lenguaje\", \"difficulty\": 2, \"chapter_id\": 147}' \
   | jq -r '.question' | grep -q ." "success"
@@ -75,14 +76,14 @@ echo "=============================================="
 
 # Test sin chapter_id (debe usar contexto generado)
 test_function "Fallback a contexto generado (sin chapter_id)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.question' | grep -q ." "success"
 
 # Test con chapter_id inexistente (debe usar contexto generado)
 test_function "Fallback a contexto generado (chapter_id inexistente)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2, \"chapter_id\": 999999}' \
   | jq -r '.question' | grep -q ." "success"
@@ -92,20 +93,20 @@ echo "====================================="
 
 # Test para verificar que las preguntas tienen formato correcto
 test_function "Formato de pregunta DECO completo" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155}' \
   | jq -r '.question, .alternatives.A, .alternatives.B, .alternatives.C, .alternatives.D, .correct_answer, .explanation' | grep -q ." "success"
 
 # Test para verificar que las preguntas son diferentes (más flexible)
 test_function "Preguntas diferentes en llamadas consecutivas" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155}' \
   | jq -r '.question' > /tmp/question1.txt && \
   sleep 2 && \
   curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155}' \
   | jq -r '.question' > /tmp/question2.txt && \
@@ -116,19 +117,19 @@ echo "======================================="
 
 # Test con diferentes habilidades cognitivas (más flexible)
 test_function "Habilidad cognitiva: análisis" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155, \"cognitive_skill\": \"análisis\"}' \
   | jq -r '.cognitive_skill' | grep -q 'análisis'" "success"
 
 test_function "Habilidad cognitiva: aplicación" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155, \"cognitive_skill\": \"aplicación\"}' \
   | jq -r '.cognitive_skill' | grep -q 'aplicación\|análisis'" "success"
 
 test_function "Habilidad cognitiva: evaluación" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155, \"cognitive_skill\": \"evaluación\"}' \
   | jq -r '.cognitive_skill' | grep -q 'evaluación\|análisis\|aplicación'" "success"
@@ -138,19 +139,19 @@ echo "=================================="
 
 # Test con diferentes áreas académicas
 test_function "Área: Historia" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.area' | grep -q 'historia'" "success"
 
 test_function "Área: Biología" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"biologia\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.area' | grep -q 'biologia'" "success"
 
 test_function "Área: Lenguaje" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"lenguaje\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.area' | grep -q 'lenguaje'" "success"
@@ -160,19 +161,19 @@ echo "================================================="
 
 # Test con diferentes niveles de dificultad
 test_function "Dificultad: 1 (Fácil)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 1}' \
   | jq -r '.difficulty' | grep -q '1'" "success"
 
 test_function "Dificultad: 2 (Medio)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' \
   | jq -r '.difficulty' | grep -q '2'" "success"
 
 test_function "Dificultad: 3 (Difícil)" "curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 3}' \
   | jq -r '.difficulty' | grep -q '3'" "success"
@@ -182,13 +183,13 @@ echo "============================="
 
 # Test de tiempo de respuesta con contenido real
 test_function "Tiempo de respuesta con contenido real < 15s" "timeout 15 curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"Importancia de la Historia\", \"difficulty\": 2, \"chapter_id\": 155}' > /dev/null" "success"
 
 # Test de tiempo de respuesta con fallback
 test_function "Tiempo de respuesta con fallback < 10s" "timeout 10 curl -X POST 'http://localhost:8000/api/v1/deco/question' \
-  -H 'Authorization: Bearer your_api_key_here' \
+  -H 'Authorization: Bearer ${API_KEY}' \
   -H 'Content-Type: application/json' \
   -d '{\"user_id\": \"user@example.com\", \"area\": \"historia\", \"topic\": \"general\", \"difficulty\": 2}' > /dev/null" "success"
 

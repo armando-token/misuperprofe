@@ -3,6 +3,8 @@
 echo "🔧 FORZANDO USO DE DECO - ELIMINANDO /get_question COMPLETAMENTE"
 echo "================================================================"
 
+API_KEY="${API_KEY:-}"
+
 # 1. Comentar endpoints /get_question
 echo "📝 Comentando endpoints /get_question..."
 
@@ -32,7 +34,7 @@ fi
 # 4. Verificar que /deco/question sigue funcionando
 echo "🔍 Verificando que /deco/question funciona..."
 curl -X POST "http://localhost:8000/api/v1/deco/question" \
-  -H "Authorization: Bearer your_api_key_here" \
+  -H "Authorization: Bearer ${API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"user_id": "user@example.com", "area": "historia", "topic": "general", "difficulty": 2}' \
   | jq '.question' > /dev/null

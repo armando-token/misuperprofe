@@ -1,0 +1,82 @@
+name: Feature Request
+description: Propose a new capability, enhancement, or architectural refinement for MiSuperProfe
+title: "[Feat]: "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping shape the future of MiSuperProfe! Please detail your feature idea, use case, and proposed architecture below.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Feature Title
+      description: A concise title summarizing the feature proposal.
+      placeholder: e.g., "Add adaptive spacing interval adjustment based on student performance"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-area
+    attributes:
+      label: Target Subsystem
+      description: Select the primary subsystem affected by this proposed feature.
+      options:
+        - Core API & Microservices
+        - DECO Assessment & Pedagogical Analytics
+        - Vector Search & Semantic Embeddings
+        - Spaced Repetition (SRS) & Adaptive Learning
+        - Database Schema & Data Models
+        - MCP Tools & AI Integration
+        - Developer Experience & CI/CD
+        - Documentation & Content
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Problem Description
+      description: Is your feature related to a current limitation or pain point? Describe the existing challenge clearly.
+      placeholder: "A clear and concise description of the problem or limitation, e.g., 'Currently, tutors cannot...'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Detailed description of the proposed feature, architecture, API changes, or algorithm.
+      placeholder: "A clear and concise description of what you envision happening and how it solves the problem."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions, designs, or trade-offs you have evaluated.
+      placeholder: "A description of any alternative approaches or workarounds considered and why they were not chosen."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context & References
+      description: Include any relevant research, diagrams, API mockups, benchmark comparisons, or links.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution-willingness
+    attributes:
+      label: Implementation Willingness
+      description: Are you interested in contributing to this feature?
+      options:
+        - label: I am willing to contribute and submit a Pull Request for this feature.
+          required: false

@@ -1,0 +1,111 @@
+name: Bug Report
+description: Create a report to help us identify and resolve a bug in MiSuperProfe
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please provide the details below so our engineering team can diagnose and resolve the bug effectively.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Bug Summary
+      description: A concise, descriptive summary of the problem.
+      placeholder: e.g., "FastAPI fails to authenticate request when JWT token expires"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Subsystem / Component
+      description: Which area or service of MiSuperProfe is affected?
+      options:
+        - Core API / FastAPI Gateway
+        - DECO Assessment Engine & Patterns
+        - Vector Search & Semantic Embeddings (FAISS)
+        - Database Models & Alembic Migrations
+        - Redis Cache, Sessions & Leaderboards
+        - Docker Compose & Local Infrastructure
+        - MCP Tools & Integrations
+        - Authentication & JWT
+        - Documentation / Scripts
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Specify your local or host environment configuration.
+      value: |
+        - **OS:** [e.g., macOS 14.5 Sonoma, Ubuntu 22.04 LTS]
+        - **Python Version:** [e.g., 3.12.3]
+        - **Docker / Docker Compose Version:** [e.g., Docker 26.0.0, Compose 2.27.0]
+        - **Git Branch / Commit SHA:** [e.g., main / 54b89d6]
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reliably reproduce the issue.
+      placeholder: |
+        1. Start the service with `docker compose up -d`
+        2. Send a request to `/api/v1/...` with payload: `{ ... }`
+        3. Observe the server error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: "The API endpoint should return a 200 OK status with the validated response payload."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? (Include error messages, unexpected responses, or crash details).
+      placeholder: "The API endpoint returned HTTP 500 with Internal Server Error."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Diagnostic Logs & Terminal Output
+      description: Paste any relevant console output, stack traces, or Docker container logs.
+      render: shell
+      placeholder: "Paste logs or stack traces here..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, workarounds, or screenshots about the problem.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-Submission Checklist
+      description: Please verify the following before submitting this issue.
+      options:
+        - label: I have searched existing issues to ensure this bug is not a duplicate.
+          required: true
+        - label: I have verified that no private API keys, secrets, or sensitive production credentials are included in this report.
+          required: true

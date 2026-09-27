@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-validate:
+    name: Lint & Python Syntax Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Linting & Formatting Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black
+
+      - name: Validate Python Syntax (py_compile)
+        run: |
+          echo "Validating syntax across all Python source files..."
+          find . -name "*.py" -not -path "*/.*" -not -path "./.venv/*" -exec python3 -m py_compile {} +
+
+      - name: Check Code Style with Ruff
+        run: |
+          echo "Running Ruff linter..."
+          ruff check .
+
+      - name: Check Code Formatting with Black
+        run: |
+          echo "Checking code formatting with Black..."
+          black --check .
+
+  docker-validate:
+    name: Docker Compose Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prepare environment configuration
+        run: |
+          if [ ! -f .env ] && [ -f .env.example ]; then
+            cp .env.example .env
+          fi
+
+      - name: Validate Docker Compose Configuration
+        run: |
+          echo "Validating docker-compose.yml configuration..."
+          docker compose config
+
+  security-check:
+    name: Secret & Credential Tracking Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify No .env Files are Tracked
+        run: |
+          echo "Checking for committed .env files..."
+          TRACKED_ENV=$(git ls-files | grep -E '(^|/)\.env($|\..*)' | grep -v '\.env\.example' || true)
+          if [ -n "$TRACKED_ENV" ]; then
+            echo "::error::Tracked environment/secret file(s) found in repository:"
+            echo "$TRACKED_ENV"
+            exit 1
+          fi
+          echo "No unauthorized .env files tracked."
+
+      - name: Verify No Private Keys or Certificates are Tracked
+        run: |
+          echo "Checking for committed private keys or certificate files..."
+          TRACKED_KEYS=$(git ls-files | grep -E '\.(pem|key|p12|pfx|pkcs12|asc)$' || true)
+          if [ -n "$TRACKED_KEYS" ]; then
+            echo "::error::Tracked key/certificate file(s) detected:"
+            echo "$TRACKED_KEYS"
+            exit 1
+          fi
+          echo "No raw key or certificate files tracked."
+
+      - name: Scan Tracked Files for Raw Private Keys
+        run: |
+          echo "Scanning tracked content for raw private key headers..."
+          if git grep -I -E "BEGIN (RSA|OPENSSH|DSA|EC|PGP) PRIVATE KEY"; then
+            echo "::error::Raw private key found in tracked repository files!"
+            exit 1
+          fi
+          echo "Secret check passed cleanly."

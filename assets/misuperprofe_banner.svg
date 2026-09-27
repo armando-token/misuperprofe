@@ -1,0 +1,512 @@
+<svg width="100%" height="100%" viewBox="0 0 1200 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060911" />
+      <stop offset="35%" stop-color="#0A101D" />
+      <stop offset="70%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#18233C" />
+    </linearGradient>
+
+    <!-- Outer Border Linear Gradient -->
+    <linearGradient id="border-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.6" />
+      <stop offset="30%" stop-color="#6366F1" stop-opacity="0.25" />
+      <stop offset="70%" stop-color="#1E293B" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.4" />
+    </linearGradient>
+
+    <!-- Brand Typography Gradient -->
+    <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#818CF8" />
+    </linearGradient>
+
+    <linearGradient id="accent-cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+
+    <linearGradient id="accent-violet-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7" />
+      <stop offset="100%" stop-color="#6366F1" />
+    </linearGradient>
+
+    <!-- Glass Cards Background & Borders -->
+    <linearGradient id="card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E1628" stop-opacity="0.94" />
+      <stop offset="100%" stop-color="#090E1A" stop-opacity="0.96" />
+    </linearGradient>
+
+    <linearGradient id="card-border-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0.2" />
+    </linearGradient>
+
+    <linearGradient id="card-border-indigo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.2" />
+    </linearGradient>
+
+    <!-- Pill Backgrounds -->
+    <linearGradient id="pill-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#172238" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#0C1322" stop-opacity="0.92" />
+    </linearGradient>
+
+    <!-- Wire & Connection Gradients -->
+    <linearGradient id="wire-cyan-indigo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.85" />
+      <stop offset="60%" stop-color="#818CF8" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.2" />
+    </linearGradient>
+
+    <linearGradient id="wire-emerald-cyan" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#0284C7" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0.2" />
+    </linearGradient>
+
+    <!-- Glow Filters -->
+    <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="9" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="ambient-cyan" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="70" />
+    </filter>
+
+    <filter id="ambient-indigo" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="80" />
+    </filter>
+
+    <filter id="ambient-emerald" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="60" />
+    </filter>
+
+    <!-- Subtle Tech Grid -->
+    <pattern id="tech-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.75" stroke-opacity="0.28" />
+      <circle cx="0" cy="0" r="0.9" fill="#38BDF8" fill-opacity="0.35" />
+    </pattern>
+
+    <!-- Micro Tech Dots -->
+    <pattern id="tech-dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="0.7" fill="#64748B" fill-opacity="0.2" />
+    </pattern>
+
+    <!-- Radial Mask for Grid Dissolve -->
+    <radialGradient id="grid-fade" cx="58%" cy="50%" r="65%" fx="58%" fy="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <mask id="grid-mask">
+      <rect width="1200" height="380" fill="url(#grid-fade)" />
+    </mask>
+  </defs>
+
+  <style>
+    .font-sans {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    .font-mono {
+      font-family: 'SF Mono', Monaco, 'Fira Code', 'Roboto Mono', Menlo, Consolas, monospace;
+    }
+  </style>
+
+  <!-- 1. BASE BACKGROUND & BORDER -->
+  <rect width="1200" height="380" rx="16" fill="url(#bg-grad)" />
+  <rect x="0.5" y="0.5" width="1199" height="379" rx="15.5" fill="none" stroke="url(#border-grad)" stroke-width="1.2" />
+
+  <!-- 2. AMBIENT GLOW SPHERES (Cosmic depth) -->
+  <g opacity="0.8">
+    <circle cx="160" cy="70" r="140" fill="#0284C7" opacity="0.16" filter="url(#ambient-cyan)" />
+    <circle cx="940" cy="170" r="190" fill="#38BDF8" opacity="0.15" filter="url(#ambient-cyan)" />
+    <circle cx="1080" cy="140" r="180" fill="#6366F1" opacity="0.18" filter="url(#ambient-indigo)" />
+    <circle cx="380" cy="360" r="130" fill="#10B981" opacity="0.10" filter="url(#ambient-emerald)" />
+  </g>
+
+  <!-- 3. GRID & PATTERN TEXTURES -->
+  <rect width="1200" height="380" fill="url(#tech-grid)" mask="url(#grid-mask)" />
+  <rect width="1200" height="380" fill="url(#tech-dots)" opacity="0.4" />
+
+  <!-- 4. RIGHT SECTION: DECO NEURAL NETWORK & COGNITIVE TELEMETRY -->
+  <g id="neural-matrix" transform="translate(10, 0)">
+    <!-- Circuit & Connection Traces -->
+    <g fill="none" stroke-linecap="round">
+      <!-- Background Structural Bus Lines -->
+      <path d="M 680 90 L 750 90 L 810 150 L 925 150" stroke="#1E293B" stroke-width="1.8" stroke-dasharray="4 4" />
+      <path d="M 870 320 L 930 320 L 970 260 L 1050 260" stroke="#1E293B" stroke-width="1.8" stroke-dasharray="4 4" />
+      <path d="M 710 330 L 750 280 L 820 280" stroke="#1E293B" stroke-width="1.5" />
+
+      <!-- Glowing Active Synaptic Beziers -->
+      <path d="M 715 145 C 790 120, 845 175, 925 175" stroke="url(#wire-cyan-indigo)" stroke-width="2.5" />
+      <path d="M 925 175 C 975 175, 1025 115, 1075 105" stroke="url(#wire-cyan-indigo)" stroke-width="2" />
+      <path d="M 925 175 C 865 215, 815 275, 760 295" stroke="url(#wire-emerald-cyan)" stroke-width="2" />
+      <path d="M 925 175 C 985 175, 1045 185, 1095 185" stroke="url(#wire-cyan-indigo)" stroke-width="2.5" />
+      <path d="M 715 145 C 705 215, 720 265, 760 295" stroke="#334155" stroke-width="1.5" stroke-dasharray="3 3" />
+      <path d="M 1075 105 C 1090 130, 1095 155, 1095 185" stroke="#334155" stroke-width="1.5" stroke-dasharray="3 3" />
+    </g>
+
+    <!-- In-flight High-Velocity Synaptic Tokens -->
+    <circle cx="820" cy="155" r="3.5" fill="#38BDF8" filter="url(#glow-cyan)" />
+    <circle cx="820" cy="155" r="1.5" fill="#FFFFFF" />
+    <circle cx="1000" cy="140" r="3" fill="#818CF8" filter="url(#glow-cyan)" />
+    <circle cx="845" cy="235" r="3" fill="#34D399" filter="url(#glow-cyan)" />
+    <circle cx="1010" cy="180" r="3.5" fill="#38BDF8" filter="url(#glow-cyan)" />
+    <circle cx="1010" cy="180" r="1.5" fill="#FFFFFF" />
+
+    <!-- Central Hub: FAISS Semantic Core (x=925, y=175) -->
+    <g transform="translate(925, 175)">
+      <!-- Outer Concentric Rings -->
+      <circle cx="0" cy="0" r="46" fill="none" stroke="#38BDF8" stroke-opacity="0.18" stroke-width="1" stroke-dasharray="6 4" />
+      <circle cx="0" cy="0" r="36" fill="none" stroke="#818CF8" stroke-opacity="0.28" stroke-width="1.2" />
+      <circle cx="0" cy="0" r="26" fill="#0B132B" stroke="#38BDF8" stroke-width="2.2" filter="url(#glow-cyan)" />
+      <!-- Inner Core Glyph -->
+      <circle cx="0" cy="0" r="10" fill="url(#brand-grad)" />
+      <circle cx="0" cy="0" r="4" fill="#FFFFFF" />
+      <!-- Cardinal Calibrators -->
+      <line x1="0" y1="-26" x2="0" y2="-32" stroke="#38BDF8" stroke-width="2" />
+      <line x1="26" y1="0" x2="32" y2="0" stroke="#38BDF8" stroke-width="2" />
+      <line x1="0" y1="26" x2="0" y2="32" stroke="#38BDF8" stroke-width="2" />
+      <line x1="-26" y1="0" x2="-32" y2="0" stroke="#38BDF8" stroke-width="2" />
+      <!-- Node Label -->
+      <text x="0" y="44" class="font-mono" font-size="8.5" font-weight="700" fill="#38BDF8" text-anchor="middle" letter-spacing="0.8">FAISS VECTOR HUB</text>
+    </g>
+
+    <!-- Satellite Node 1: DECO Cognitive Matrix (x=715, y=145) -->
+    <g transform="translate(715, 145)">
+      <circle cx="0" cy="0" r="18" fill="#0F172A" stroke="#38BDF8" stroke-width="1.8" filter="url(#glow-cyan)" />
+      <!-- Brain / DECO Symbol -->
+      <path d="M-6 -4 C-6 -8, -1 -9, 0 -6 C1 -9, 6 -8, 6 -4 C6 2, 2 5, 0 8 C-2 5, -6 2, -6 -4 Z" fill="none" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" />
+      <circle cx="0" cy="-2" r="1.5" fill="#38BDF8" />
+      <text x="-24" y="4" class="font-mono" font-size="8.5" font-weight="600" fill="#94A3B8" text-anchor="end">DECO Matrix</text>
+    </g>
+
+    <!-- Satellite Node 2: Dynamic Router (x=1075, y=105) -->
+    <g transform="translate(1075, 105)">
+      <circle cx="0" cy="0" r="18" fill="#0F172A" stroke="#818CF8" stroke-width="1.8" filter="url(#glow-cyan)" />
+      <!-- Lightning Dispatch Symbol -->
+      <path d="M-1 -8 L-6 0 L0 0 L-1 8 L6 -1 L0 -1 Z" fill="url(#brand-grad)" />
+      <text x="24" y="4" class="font-mono" font-size="8.5" font-weight="600" fill="#A5B4FC">/dynamic API</text>
+    </g>
+
+    <!-- Satellite Node 3: SM-2 Adaptive SRS (x=760, y=295) -->
+    <g transform="translate(760, 295)">
+      <circle cx="0" cy="0" r="18" fill="#0F172A" stroke="#10B981" stroke-width="1.8" filter="url(#glow-cyan)" />
+      <!-- Spaced Mastery Curve Symbol -->
+      <path d="M-7 4 Q -2 4, 0 0 T 7 -5" fill="none" stroke="#34D399" stroke-width="2" stroke-linecap="round" />
+      <circle cx="7" cy="-5" r="2" fill="#34D399" />
+      <text x="-24" y="4" class="font-mono" font-size="8.5" font-weight="600" fill="#34D399" text-anchor="end">SM-2 SRS</text>
+    </g>
+
+    <!-- Satellite Node 4: Theory Knowledge Corpus (x=1095, y=185) -->
+    <g transform="translate(1095, 185)">
+      <circle cx="0" cy="0" r="18" fill="#0F172A" stroke="#60A5FA" stroke-width="1.8" filter="url(#glow-cyan)" />
+      <!-- Relational Data Symbol -->
+      <path d="M-6 -5 L-6 5 Q0 3, 6 5 L6 -5 Q0 -7, -6 -5 Z" fill="none" stroke="#60A5FA" stroke-width="1.5" />
+      <line x1="0" y1="-6" x2="0" y2="4" stroke="#60A5FA" stroke-width="1.2" />
+      <text x="24" y="4" class="font-mono" font-size="8.5" font-weight="600" fill="#93C5FD">Theory Corpus</text>
+    </g>
+
+    <!-- FLOATING HUD CARD A: DECO Cognitive Matrix Radar (x=685, y=30, w=245, h=84) -->
+    <g transform="translate(685, 30)">
+      <!-- Glassmorphic Container -->
+      <rect width="245" height="84" rx="10" fill="url(#card-grad)" stroke="url(#card-border-cyan)" stroke-width="1" />
+      <rect x="0" y="0" width="245" height="2" fill="url(#brand-grad)" rx="1" />
+
+      <!-- Card Header -->
+      <circle cx="16" cy="18" r="3.5" fill="#38BDF8" filter="url(#glow-cyan)" />
+      <text x="26" y="21.5" class="font-sans" font-size="9" font-weight="700" fill="#E2E8F0" letter-spacing="0.6">DECO® COGNITIVE MATRIX</text>
+      <!-- Area Badge -->
+      <rect x="180" y="10" width="52" height="16" rx="8" fill="#0284C7" fill-opacity="0.25" stroke="#38BDF8" stroke-width="0.8" />
+      <text x="206" y="21.5" class="font-sans" font-size="8" font-weight="700" fill="#38BDF8" text-anchor="middle">AREA A-E</text>
+
+      <!-- Mini Cognitive Retention Waveform Graph -->
+      <path d="M 16 54 Q 38 32, 60 45 T 105 36 T 150 48 T 195 32 L 225 44" fill="none" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round" />
+      <path d="M 16 54 Q 38 32, 60 45 T 105 36 T 150 48 T 195 32 L 225 44 L 225 65 L 16 65 Z" fill="url(#brand-grad)" opacity="0.12" />
+
+      <!-- Pulse Dot on Graph Peak -->
+      <circle cx="195" cy="32" r="3.5" fill="#FFFFFF" filter="url(#glow-cyan)" />
+      <circle cx="195" cy="32" r="1.5" fill="#38BDF8" />
+
+      <!-- Footer Micro Data -->
+      <text x="16" y="73" class="font-mono" font-size="8.5" fill="#64748B">Context: UNMSM/DECO</text>
+      <text x="228" y="73" class="font-mono" font-size="8.5" font-weight="700" fill="#34D399" text-anchor="end">Depth: Level 5 ★</text>
+    </g>
+
+    <!-- FLOATING HUD CARD B: Semantic Vector Search Telemetry (x=895, y=242, w=232, h=92) -->
+    <g transform="translate(895, 242)">
+      <!-- Glassmorphic Container -->
+      <rect width="232" height="92" rx="10" fill="url(#card-grad)" stroke="url(#card-border-indigo)" stroke-width="1" />
+      <rect x="0" y="0" width="232" height="2" fill="url(#accent-violet-grad)" rx="1" />
+
+      <!-- Card Header -->
+      <circle cx="14" cy="18" r="3.5" fill="#818CF8" filter="url(#glow-cyan)" />
+      <text x="24" y="21.5" class="font-sans" font-size="8.5" font-weight="700" fill="#E2E8F0" letter-spacing="0.5">FAISS SEMANTIC RETRIEVAL</text>
+      <text x="218" y="21.5" class="font-mono" font-size="8.5" font-weight="700" fill="#34D399" text-anchor="end">&lt;15ms</text>
+
+      <!-- Similarity Progress Bars -->
+      <!-- Item 1 -->
+      <text x="14" y="38" class="font-sans" font-size="8.2" fill="#CBD5E1">Biología &amp; Genética DECO</text>
+      <text x="180" y="38" class="font-mono" font-size="8" fill="#94A3B8">0.962</text>
+      <rect x="14" y="43" width="204" height="4.5" rx="2.25" fill="#1E293B" />
+      <rect x="14" y="43" width="196" height="4.5" rx="2.25" fill="url(#brand-grad)" />
+
+      <!-- Item 2 -->
+      <text x="14" y="59" class="font-sans" font-size="8.2" fill="#CBD5E1">Física Mecánica Vectorial</text>
+      <text x="180" y="59" class="font-mono" font-size="8" fill="#94A3B8">0.914</text>
+      <rect x="14" y="64" width="204" height="4.5" rx="2.25" fill="#1E293B" />
+      <rect x="14" y="64" width="186" height="4.5" rx="2.25" fill="url(#brand-grad)" />
+
+      <!-- Footer Micro Metrics -->
+      <text x="14" y="80" class="font-mono" font-size="8" fill="#64748B">all-MiniLM-L6-v2</text>
+      <text x="218" y="80" class="font-mono" font-size="8" fill="#38BDF8" text-anchor="end">2,473 Chapters</text>
+    </g>
+
+    <!-- Decorative Cyber Elements & Hex Highlights -->
+    <g opacity="0.35" stroke="#38BDF8" stroke-width="0.8" fill="none">
+      <path d="M 650 210 L 665 200 L 680 210 L 665 220 Z" />
+      <path d="M 1135 45 L 1150 35 L 1165 45 L 1150 55 Z" />
+      <line x1="665" y1="200" x2="665" y2="185" stroke-dasharray="2 2" />
+      <line x1="1150" y1="35" x2="1150" y2="20" stroke-dasharray="2 2" />
+    </g>
+  </g>
+
+  <!-- 5. LEFT SECTION: BRAND IDENTITY & TYPOGRAPHY -->
+  <g transform="translate(60, 0)">
+    <!-- Top System Live Badge -->
+    <g transform="translate(0, 36)">
+      <rect width="298" height="26" rx="13" fill="#0B1329" fill-opacity="0.85" stroke="#1E293B" stroke-width="1.2" />
+      <!-- Pulsing Dot -->
+      <circle cx="15" cy="13" r="5" fill="#10B981" fill-opacity="0.25" />
+      <circle cx="15" cy="13" r="3" fill="#10B981" filter="url(#glow-cyan)" />
+      <circle cx="15" cy="13" r="1.5" fill="#FFFFFF" />
+      <text x="28" y="17" class="font-mono" font-size="10" font-weight="700" fill="#38BDF8" letter-spacing="1.2">ENTERPRISE COGNITIVE PLATFORM</text>
+    </g>
+
+    <!-- Main Brand Emblem & Title Lockup -->
+    <g transform="translate(0, 80)">
+      <!-- Custom High-Tech Emblem (Graduation Cap + Neural Matrix) -->
+      <g transform="translate(0, 2)">
+        <!-- Emblem Background Plate -->
+        <rect width="52" height="52" rx="14" fill="#0F172A" stroke="url(#border-grad)" stroke-width="1.5" />
+        <rect width="52" height="52" rx="14" fill="url(#card-grad)" />
+
+        <!-- Cap Mortarboard Top -->
+        <path d="M 26 12 L 44 20 L 26 28 L 8 20 Z" fill="url(#brand-grad)" />
+        <path d="M 26 15 L 40 21 L 26 27 L 12 21 Z" fill="#0F172A" />
+
+        <!-- Glowing Center Core Node -->
+        <circle cx="26" cy="21" r="3.5" fill="#38BDF8" filter="url(#glow-cyan)" />
+        <circle cx="26" cy="21" r="1.5" fill="#FFFFFF" />
+
+        <!-- Academic Cap Lower Band -->
+        <path d="M 15 24.5 L 15 32 C 15 35, 37 35, 37 32 L 37 24.5" fill="none" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round" />
+
+        <!-- Tassel & Neural Branch Drops -->
+        <path d="M 40 22 L 44 28 L 44 36" fill="none" stroke="#F59E0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="44" cy="37" r="1.5" fill="#F59E0B" />
+
+        <!-- Synapse Accents Below -->
+        <circle cx="20" cy="40" r="1.8" fill="#818CF8" />
+        <circle cx="26" cy="42" r="2" fill="#38BDF8" />
+        <circle cx="32" cy="40" r="1.8" fill="#818CF8" />
+        <line x1="20" y1="40" x2="26" y2="42" stroke="#818CF8" stroke-width="1" />
+        <line x1="32" y1="40" x2="26" y2="42" stroke="#818CF8" stroke-width="1" />
+      </g>
+
+      <!-- Brand Name: MiSuperProfe -->
+      <g transform="translate(68, 41)">
+        <text class="font-sans" font-size="44" font-weight="900" letter-spacing="-0.8">
+          <tspan fill="#FFFFFF">Mi</tspan><tspan fill="url(#brand-grad)">Super</tspan><tspan fill="#FFFFFF">Profe</tspan>
+        </text>
+
+        <!-- Version & Architecture Tag (Neatly aligned beside the brand name) -->
+        <g transform="translate(294, -30)">
+          <rect width="92" height="22" rx="11" fill="#1E1B4B" fill-opacity="0.8" stroke="#6366F1" stroke-width="1" />
+          <text x="46" y="14.5" class="font-mono" font-size="9" font-weight="700" fill="#A5B4FC" text-anchor="middle" letter-spacing="0.8">v2.4 AUDITED</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Subtitle -->
+    <text x="0" y="165" class="font-sans" font-size="18" font-weight="500" fill="#E2E8F0" letter-spacing="-0.2">
+      Adaptive AI Tutoring &amp; DECO Cognitive Assessment Engine
+    </text>
+
+    <!-- Sub-tagline -->
+    <text x="0" y="185" class="font-sans" font-size="12" font-weight="400" fill="#94A3B8" letter-spacing="0.1">
+      Dense Semantic Retrieval • UNMSM DECO Format • Multi-Agent Orchestration
+    </text>
+
+    <!-- 3 Key Metric Highlight Badges (Stack aligned to prevent collision) -->
+    <g transform="translate(0, 198)">
+      <!-- Metric 1: Theory Chapters -->
+      <g transform="translate(0, 0)">
+        <rect width="168" height="42" rx="8" fill="#0F172A" fill-opacity="0.75" stroke="#1E293B" stroke-width="1" />
+        <!-- Micro Book Icon -->
+        <g transform="translate(14, 11)">
+          <path d="M 0 2 C 3 1, 6 1, 8 2.5 L 8 11 C 6 9.5, 3 9.5, 0 10.5 Z" fill="#38BDF8" fill-opacity="0.3" stroke="#38BDF8" stroke-width="1" />
+          <path d="M 8 2.5 C 10 1, 13 1, 16 2 L 16 10.5 C 13 9.5, 10 9.5, 8 11 Z" fill="#38BDF8" fill-opacity="0.3" stroke="#38BDF8" stroke-width="1" />
+        </g>
+        <text x="36" y="20" class="font-sans">
+          <tspan fill="#FFFFFF" font-size="14.5" font-weight="800">2,473 </tspan>
+          <tspan fill="#38BDF8" font-size="11" font-weight="700">Chapters</tspan>
+        </text>
+        <text x="14" y="33" class="font-sans" font-size="9.5" fill="#64748B">Curated Theory Corpus</text>
+      </g>
+
+      <!-- Metric 2: Sub-15ms Latency -->
+      <g transform="translate(178, 0)">
+        <rect width="168" height="42" rx="8" fill="#0F172A" fill-opacity="0.75" stroke="#1E293B" stroke-width="1" />
+        <!-- Micro Lightning Icon -->
+        <g transform="translate(14, 11)">
+          <path d="M 5 0 L 1 7 L 6 7 L 4 13 L 10 5 L 6 5 Z" fill="#34D399" />
+        </g>
+        <text x="30" y="20" class="font-mono">
+          <tspan fill="#34D399" font-size="14" font-weight="800">&lt; 15 ms </tspan>
+          <tspan fill="#94A3B8" font-size="10.5" font-weight="600">Latency</tspan>
+        </text>
+        <text x="14" y="33" class="font-sans" font-size="9.5" fill="#64748B">FAISS In-Memory Search</text>
+      </g>
+
+      <!-- Metric 3: SM-2 Spaced Repetition -->
+      <g transform="translate(356, 0)">
+        <rect width="168" height="42" rx="8" fill="#0F172A" fill-opacity="0.75" stroke="#1E293B" stroke-width="1" />
+        <!-- Micro Brain Icon -->
+        <g transform="translate(14, 11)">
+          <path d="M 3 2 C 1 4, 1 7, 3 9 C 5 11, 8 10, 8 8 L 8 4 C 8 2, 5 1, 3 2 Z" fill="none" stroke="#818CF8" stroke-width="1" />
+          <path d="M 13 2 C 15 4, 15 7, 13 9 C 11 11, 8 10, 8 8 L 8 4 C 8 2, 11 1, 13 2 Z" fill="none" stroke="#818CF8" stroke-width="1" />
+        </g>
+        <text x="36" y="20" class="font-sans">
+          <tspan fill="#818CF8" font-size="14" font-weight="800">SM-2 </tspan>
+          <tspan fill="#CBD5E1" font-size="11" font-weight="700">Algorithm</tspan>
+        </text>
+        <text x="14" y="33" class="font-sans" font-size="9.5" fill="#64748B">Cognitive Mastery Curve</text>
+      </g>
+    </g>
+
+    <!-- Micro Section Divider Label -->
+    <g transform="translate(0, 258)">
+      <line x1="0" y1="0" x2="524" y2="0" stroke="#1E293B" stroke-width="1" />
+      <text x="0" y="-5" class="font-mono" font-size="9" font-weight="700" fill="#64748B" letter-spacing="1.5">PRODUCTION TECH STACK</text>
+    </g>
+
+    <!-- 6 TECH STACK PILLS (Arranged cleanly in two rows with ample breathing room) -->
+    <!-- Row 1: FastAPI • FAISS • Docker Compose -->
+    <g transform="translate(0, 272)">
+      <!-- 1. FastAPI Pill -->
+      <g transform="translate(0, 0)">
+        <rect width="126" height="32" rx="8" fill="url(#pill-bg)" stroke="#009688" stroke-opacity="0.4" stroke-width="1" />
+        <!-- FastAPI Hex + Bolt -->
+        <g transform="translate(10, 8)">
+          <path d="M 8 0 L 15 4 L 15 12 L 8 16 L 1 12 L 1 4 Z" fill="#009688" />
+          <path d="M 8 3 L 6 8 L 9 8 L 8 13 L 11 7 L 8 7 Z" fill="#FFFFFF" />
+        </g>
+        <text x="32" y="20" class="font-sans">
+          <tspan fill="#F1F5F9" font-size="12" font-weight="700">FastAPI </tspan>
+          <tspan fill="#2DD4BF" font-family="'SF Mono', monospace" font-size="9" font-weight="600">v0.115</tspan>
+        </text>
+      </g>
+
+      <!-- 2. FAISS Pill -->
+      <g transform="translate(136, 0)">
+        <rect width="112" height="32" rx="8" fill="url(#pill-bg)" stroke="#10B981" stroke-opacity="0.4" stroke-width="1" />
+        <!-- FAISS Vector Icon -->
+        <g transform="translate(10, 8)">
+          <circle cx="8" cy="8" r="7" fill="#065F46" />
+          <circle cx="5" cy="6" r="1.8" fill="#34D399" />
+          <circle cx="11" cy="6" r="1.8" fill="#34D399" />
+          <circle cx="8" cy="11" r="1.8" fill="#34D399" />
+          <line x1="5" y1="6" x2="8" y2="11" stroke="#34D399" stroke-width="1" />
+          <line x1="11" y1="6" x2="8" y2="11" stroke="#34D399" stroke-width="1" />
+        </g>
+        <text x="32" y="20" class="font-sans">
+          <tspan fill="#F1F5F9" font-size="12" font-weight="700">FAISS </tspan>
+          <tspan fill="#34D399" font-family="'SF Mono', monospace" font-size="9.5" font-weight="700">CPU</tspan>
+        </text>
+      </g>
+
+      <!-- 3. Docker Compose Pill -->
+      <g transform="translate(258, 0)">
+        <rect width="170" height="32" rx="8" fill="url(#pill-bg)" stroke="#2496ED" stroke-opacity="0.4" stroke-width="1" />
+        <!-- Docker Whale Icon -->
+        <g transform="translate(10, 8)">
+          <rect x="0" y="5" width="3" height="2.5" rx="0.5" fill="#38BDF8" />
+          <rect x="4" y="5" width="3" height="2.5" rx="0.5" fill="#38BDF8" />
+          <rect x="8" y="5" width="3" height="2.5" rx="0.5" fill="#38BDF8" />
+          <rect x="4" y="2" width="3" height="2.5" rx="0.5" fill="#38BDF8" />
+          <rect x="8" y="2" width="3" height="2.5" rx="0.5" fill="#38BDF8" />
+          <path d="M 12 6 C 14 5, 16 6, 17 8 C 16 11, 12 13, 5 13 C 2 13, 0 11, 0 9 L 12 9" fill="#2496ED" />
+        </g>
+        <text x="33" y="20" class="font-sans">
+          <tspan fill="#F1F5F9" font-size="12" font-weight="700">Docker Compose </tspan>
+          <tspan fill="#38BDF8" font-family="'SF Mono', monospace" font-size="9.5" font-weight="700">v2</tspan>
+        </text>
+      </g>
+    </g>
+
+    <!-- Row 2: Caddy SSL • PostgreSQL • Redis -->
+    <g transform="translate(0, 312)">
+      <!-- 4. Caddy SSL Pill -->
+      <g transform="translate(0, 0)">
+        <rect width="132" height="32" rx="8" fill="url(#pill-bg)" stroke="#00C7B7" stroke-opacity="0.4" stroke-width="1" />
+        <!-- Security Shield Icon -->
+        <g transform="translate(10, 8)">
+          <path d="M 8 1 L 15 4 L 15 9 C 15 13, 8 16, 8 16 C 8 16, 1 13, 1 9 L 1 4 Z" fill="#0E7490" />
+          <circle cx="8" cy="8" r="2" fill="#FFFFFF" />
+          <path d="M 8 10 L 8 12" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" />
+        </g>
+        <text x="32" y="20" class="font-sans">
+          <tspan fill="#F1F5F9" font-size="12" font-weight="700">Caddy SSL </tspan>
+          <tspan fill="#22D3EE" font-family="'SF Mono', monospace" font-size="9" font-weight="600">2.7+</tspan>
+        </text>
+      </g>
+
+      <!-- 5. PostgreSQL Pill -->
+      <g transform="translate(142, 0)">
+        <rect width="145" height="32" rx="8" fill="url(#pill-bg)" stroke="#4169E1" stroke-opacity="0.4" stroke-width="1" />
+        <!-- Database Cylinder Icon -->
+        <g transform="translate(10, 8)">
+          <ellipse cx="8" cy="4" rx="7" ry="2.5" fill="#60A5FA" />
+          <path d="M 1 4 L 1 9 C 1 10.5, 4.1 11.5, 8 11.5 C 11.9 11.5, 15 10.5, 15 9 L 15 4" fill="#336791" />
+          <path d="M 1 9 L 1 13 C 1 14.5, 4.1 15.5, 8 15.5 C 11.9 15.5, 15 14.5, 15 13 L 15 9" fill="#1D4ED8" />
+        </g>
+        <text x="32" y="20" class="font-sans">
+          <tspan fill="#F1F5F9" font-size="12" font-weight="700">PostgreSQL </tspan>
+          <tspan fill="#93C5FD" font-family="'SF Mono', monospace" font-size="9.5" font-weight="700">15</tspan>
+        </text>
+      </g>
+
+      <!-- 6. Redis Pill -->
+      <g transform="translate(297, 0)">
+        <rect width="118" height="32" rx="8" fill="url(#pill-bg)" stroke="#EF4444" stroke-opacity="0.4" stroke-width="1" />
+        <!-- Redis Cache Planes Icon -->
+        <g transform="translate(10, 8)">
+          <path d="M 8 1 L 15 4.5 L 8 8 L 1 4.5 Z" fill="#EF4444" />
+          <path d="M 1 7.5 L 8 11 L 15 7.5" fill="none" stroke="#DC2828" stroke-width="1.6" />
+          <path d="M 1 11.5 L 8 15 L 15 11.5" fill="none" stroke="#991B1B" stroke-width="1.6" />
+        </g>
+        <text x="32" y="20" class="font-sans">
+          <tspan fill="#F1F5F9" font-size="12" font-weight="700">Redis </tspan>
+          <tspan fill="#F87171" font-family="'SF Mono', monospace" font-size="9" font-weight="600">7 AOF</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

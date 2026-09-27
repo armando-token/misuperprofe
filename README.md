@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/misuperprofe_banner.svg" alt="MiSuperProfe — Adaptive AI Tutoring &amp; DECO Cognitive Assessment Engine" width="100%">
+</p>
+
 # 🎓 MiSuperProfe
 
 <div align="center">
